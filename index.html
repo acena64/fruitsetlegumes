@@ -1666,45 +1666,66 @@
         }
 
         async function loadAllGroupements() {
+            console.log('Chargement des groupements...');
             try {
-                const { data, error } = await supabaseClient
+                // Charger les groupements sans jointure d'abord
+                const { data: groupements, error } = await supabaseClient
                     .from('groupements')
-                    .select(`
-                        *,
-                        profiles!groupements_coordonnateur_id_fkey(nom, email)
-                    `)
+                    .select('*')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erreur chargement groupements:', error);
+                    throw error;
+                }
 
                 const container = document.getElementById('groupementsList');
                 
-                if (!data || data.length === 0) {
+                if (!groupements || groupements.length === 0) {
                     container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun groupement créé</p>';
                     return;
                 }
 
-                container.innerHTML = data.map(g => `
+                console.log('Groupements chargés:', groupements);
+
+                // Pour chaque groupement, charger le coordonnateur séparément
+                const groupementsAvecCoord = await Promise.all(
+                    groupements.map(async (g) => {
+                        if (g.coordonnateur_id) {
+                            const { data: coord } = await supabaseClient
+                                .from('profiles')
+                                .select('nom, email')
+                                .eq('id', g.coordonnateur_id)
+                                .single();
+                            return { ...g, profiles: coord };
+                        }
+                        return { ...g, profiles: null };
+                    })
+                );
+
+                container.innerHTML = groupementsAvecCoord.map(g => `
                     <div class="card">
                         <div class="card-header">
                             <div class="card-title">${g.nom}</div>
                             <span class="token-badge">${g.code_invite}</span>
                         </div>
                         <div class="card-body">
-                            <p><strong>Coordonnateur:</strong> ${g.profiles?.nom || 'N/A'}</p>
-                            <p><strong>Email:</strong> ${g.profiles?.email || 'N/A'}</p>
+                            <p><strong>Coordonnateur:</strong> ${g.profiles?.nom || 'Non assigné'}</p>
+                            <p><strong>Email:</strong> ${g.profiles?.email || '-'}</p>
                             <p><strong>Description:</strong> ${g.description || '-'}</p>
                             <p><strong>Créé le:</strong> ${formatDate(g.created_at)}</p>
                         </div>
                         <div class="card-footer">
-                            <button class="btn btn-small" onclick="viewGroupementDetails('${g.id}')">Voir détails</button>
+                            <button class="btn btn-small" onclick="viewGroupementDetails(${g.id})">Voir détails</button>
                         </div>
                     </div>
                 `).join('');
 
+                console.log('Groupements affichés avec succès');
+
             } catch (error) {
                 console.error('Erreur chargement groupements:', error);
-                showAlert('Erreur lors du chargement des groupements', 'error', 'adminAlerts');
+                showAlert('Erreur lors du chargement des groupements: ' + error.message, 'error', 'adminAlerts');
             }
         }
 
@@ -2010,17 +2031,27 @@
 
         // Voir détails d'un groupement
         window.viewGroupementDetails = async function(groupementId) {
+            console.log('Chargement détails groupement:', groupementId);
             try {
+                // Charger le groupement
                 const { data: groupement, error: gError } = await supabaseClient
                     .from('groupements')
-                    .select(`
-                        *,
-                        profiles!groupements_coordonnateur_id_fkey(nom, email, telephone)
-                    `)
+                    .select('*')
                     .eq('id', groupementId)
                     .single();
 
                 if (gError) throw gError;
+
+                // Charger le coordonnateur séparément
+                let coordonnateur = null;
+                if (groupement.coordonnateur_id) {
+                    const { data: coord } = await supabaseClient
+                        .from('profiles')
+                        .select('nom, email, telephone')
+                        .eq('id', groupement.coordonnateur_id)
+                        .single();
+                    coordonnateur = coord;
+                }
 
                 // Compter les adhérents
                 const { count: nbAdherents } = await supabaseClient
@@ -2046,9 +2077,9 @@
 
                     <div style="margin-top: 2rem;">
                         <h4 style="margin-bottom: 1rem;">👤 Coordonnateur</h4>
-                        <p><strong>Nom:</strong> ${groupement.profiles?.nom || 'N/A'}</p>
-                        <p><strong>Email:</strong> ${groupement.profiles?.email || 'N/A'}</p>
-                        <p><strong>Téléphone:</strong> ${groupement.profiles?.telephone || '-'}</p>
+                        <p><strong>Nom:</strong> ${coordonnateur?.nom || 'Non assigné'}</p>
+                        <p><strong>Email:</strong> ${coordonnateur?.email || '-'}</p>
+                        <p><strong>Téléphone:</strong> ${coordonnateur?.telephone || '-'}</p>
                     </div>
 
                     <div style="margin-top: 2rem;">
