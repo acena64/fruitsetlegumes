@@ -267,10 +267,12 @@
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
+            transition: all 0.3s ease;
         }
 
         .auth-toggle a:hover {
             text-decoration: underline;
+            color: var(--primary-light);
         }
 
         /* Dashboard */
@@ -717,7 +719,7 @@
                 <button type="submit" class="btn">Se connecter</button>
             </form>
             <div class="auth-toggle">
-                Pas encore de compte ? <a onclick="toggleAuth()">S'inscrire</a>
+                Pas encore de compte ? <a href="javascript:void(0);" onclick="toggleAuth()">S'inscrire</a>
             </div>
         </div>
 
@@ -747,7 +749,7 @@
                 <button type="submit" class="btn">Créer mon compte</button>
             </form>
             <div class="auth-toggle">
-                Déjà un compte ? <a onclick="toggleAuth()">Se connecter</a>
+                Déjà un compte ? <a href="javascript:void(0);" onclick="toggleAuth()">Se connecter</a>
             </div>
         </div>
     </div>
@@ -852,8 +854,8 @@
     <script>
         // Configuration Supabase
         // ⚠️ IMPORTANT: Remplacez ces valeurs par vos propres clés Supabase
-        const SUPABASE_URL = 'https://uhunynflwochgqbbzyau.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVodW55bmZsd29jaGdxYmJ6eWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMDU5OTUsImV4cCI6MjA4MjY4MTk5NX0.c4Hj16A46NzlfITEga_Ax-hIJ5iC8VtehU3mOwu9PLU';
+        const SUPABASE_URL = 'VOTRE_URL_SUPABASE';
+        const SUPABASE_ANON_KEY = 'VOTRE_CLE_ANON_SUPABASE';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -944,8 +946,16 @@
         }
 
         function toggleAuth() {
-            document.getElementById('loginForm').classList.toggle('hidden');
-            document.getElementById('signupForm').classList.toggle('hidden');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            
+            if (loginForm.classList.contains('hidden')) {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+            }
         }
 
         // User Profile
