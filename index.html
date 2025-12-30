@@ -1435,45 +1435,88 @@
 
         // User Profile
         async function loadUserProfile() {
-            const { data, error } = await supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
+            try {
+                console.log('Chargement du profil pour:', currentUser.id);
+                
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
 
-            if (data) {
-                currentRole = data.role;
-                document.getElementById('userEmail').textContent = data.organization;
+                if (error) {
+                    console.error('Erreur chargement profil:', error);
+                    throw error;
+                }
+
+                if (data) {
+                    console.log('Profil chargé:', data);
+                    currentRole = data.role;
+                    document.getElementById('userEmail').textContent = data.nom || data.email;
+                    console.log('Rôle actuel:', currentRole);
+                } else {
+                    console.error('Aucun profil trouvé');
+                    showAlert('Profil introuvable. Veuillez vous reconnecter.', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur complète loadUserProfile:', error);
+                showAlert('Erreur de chargement du profil: ' + error.message, 'error');
             }
         }
 
         // Dashboard
         function showDashboard() {
+            console.log('=== AFFICHAGE DASHBOARD ===');
+            console.log('currentRole:', currentRole);
+            console.log('currentUser:', currentUser);
+            
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('mainHeader').classList.remove('hidden');
             document.getElementById('dashboard').classList.add('active');
             
             // Générer les onglets selon le rôle
             const roleTabs = document.getElementById('roleTabs');
-            roleTabs.innerHTML = '';
+            if (roleTabs) {
+                roleTabs.innerHTML = '';
+            }
             
             // Masquer tous les panels
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => {
+                console.log('Masquage panel:', p.id);
+                p.classList.remove('active');
+            });
             
             // Afficher le bon panel selon le rôle
+            console.log('Affichage du panel pour rôle:', currentRole);
+            
             if (currentRole === 'administrateur') {
-                document.getElementById('administrateurPanel').classList.add('active');
-                loadAdminDashboard();
+                console.log('→ Panel administrateur');
+                const adminPanel = document.getElementById('administrateurPanel');
+                if (adminPanel) {
+                    adminPanel.classList.add('active');
+                    console.log('Panel admin activé');
+                    loadAdminDashboard();
+                } else {
+                    console.error('Panel administrateur introuvable !');
+                }
             } else if (currentRole === 'coordonnateur') {
+                console.log('→ Panel coordonnateur');
                 document.getElementById('coordonnateurPanel').classList.add('active');
                 // loadCoordDashboard(); // À implémenter
             } else if (currentRole === 'adherent') {
+                console.log('→ Panel adhérent');
                 document.getElementById('adherentPanel').classList.add('active');
                 // loadAdherentDashboard(); // À implémenter
             } else if (currentRole === 'fournisseur') {
+                console.log('→ Panel fournisseur');
                 document.getElementById('fournisseurPanel').classList.add('active');
                 // loadFournisseurDashboard(); // À implémenter
+            } else {
+                console.error('Rôle inconnu:', currentRole);
+                showAlert('Rôle utilisateur non reconnu: ' + currentRole, 'error');
             }
+            
+            console.log('=== FIN AFFICHAGE DASHBOARD ===');
         }
 
         // Admin Dashboard
@@ -1484,36 +1527,64 @@
         }
 
         async function loadAdminStats() {
+            console.log('Chargement des statistiques admin...');
             try {
                 // Statistiques coordonnateurs
-                const { data: coords } = await supabaseClient
+                const { count: coords, error: errorCoords } = await supabaseClient
                     .from('profiles')
-                    .select('id', { count: 'exact', head: true })
+                    .select('*', { count: 'exact', head: true })
                     .eq('role', 'coordonnateur');
-                document.getElementById('statsCoords').textContent = coords || 0;
+                
+                if (errorCoords) {
+                    console.error('Erreur stats coords:', errorCoords);
+                } else {
+                    console.log('Coordonnateurs:', coords);
+                    document.getElementById('statsCoords').textContent = coords || 0;
+                }
 
                 // Statistiques groupements
-                const { data: groupements } = await supabaseClient
+                const { count: groupements, error: errorGroupements } = await supabaseClient
                     .from('groupements')
-                    .select('id', { count: 'exact', head: true });
-                document.getElementById('statsGroupements').textContent = groupements || 0;
+                    .select('*', { count: 'exact', head: true });
+                
+                if (errorGroupements) {
+                    console.error('Erreur stats groupements:', errorGroupements);
+                } else {
+                    console.log('Groupements:', groupements);
+                    document.getElementById('statsGroupements').textContent = groupements || 0;
+                }
 
                 // Statistiques adhérents
-                const { data: adherents } = await supabaseClient
+                const { count: adherents, error: errorAdherents } = await supabaseClient
                     .from('profiles')
-                    .select('id', { count: 'exact', head: true })
+                    .select('*', { count: 'exact', head: true })
                     .eq('role', 'adherent');
-                document.getElementById('statsAdherents').textContent = adherents || 0;
+                
+                if (errorAdherents) {
+                    console.error('Erreur stats adhérents:', errorAdherents);
+                } else {
+                    console.log('Adhérents:', adherents);
+                    document.getElementById('statsAdherents').textContent = adherents || 0;
+                }
 
                 // Statistiques fournisseurs
-                const { data: fournisseurs } = await supabaseClient
+                const { count: fournisseurs, error: errorFournisseurs } = await supabaseClient
                     .from('profiles')
-                    .select('id', { count: 'exact', head: true })
+                    .select('*', { count: 'exact', head: true })
                     .eq('role', 'fournisseur');
-                document.getElementById('statsFournisseurs').textContent = fournisseurs || 0;
+                
+                if (errorFournisseurs) {
+                    console.error('Erreur stats fournisseurs:', errorFournisseurs);
+                } else {
+                    console.log('Fournisseurs:', fournisseurs);
+                    document.getElementById('statsFournisseurs').textContent = fournisseurs || 0;
+                }
+
+                console.log('Statistiques chargées avec succès');
 
             } catch (error) {
                 console.error('Erreur chargement stats:', error);
+                showAlert('Erreur lors du chargement des statistiques', 'error', 'adminAlerts');
             }
         }
 
