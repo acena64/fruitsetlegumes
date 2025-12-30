@@ -877,8 +877,18 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVodW55bmZsd29jaGdxYmJ6eWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMDU5OTUsImV4cCI6MjA4MjY4MTk5NX0.c4Hj16A46NzlfITEga_Ax-hIJ5iC8VtehU3mOwu9PLU';
         
         let supabaseClient = null;
-        if (window.supabase) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Attendre que Supabase soit chargé
+        function initSupabase() {
+            if (window.supabase) {
+                console.log('Initialisation de Supabase...');
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialisé:', !!supabaseClient);
+                return true;
+            } else {
+                console.error('window.supabase n\'est pas disponible !');
+                return false;
+            }
         }
 
         let currentUser = null;
@@ -886,15 +896,29 @@
 
         // Initialisation
         async function init() {
+            console.log('Démarrage de l\'application...');
+            
             if (!supabaseClient) {
-                console.warn('Supabase non chargé - mode démonstration');
-                return;
+                const success = initSupabase();
+                if (!success) {
+                    console.error('Impossible d\'initialiser Supabase');
+                    showAlert('Erreur de chargement. Veuillez recharger la page.', 'error');
+                    return;
+                }
             }
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                await loadUserProfile();
-                showDashboard();
+            
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    console.log('Session trouvée:', session.user.email);
+                    currentUser = session.user;
+                    await loadUserProfile();
+                    showDashboard();
+                } else {
+                    console.log('Aucune session active');
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'initialisation:', error);
             }
         }
 
@@ -904,20 +928,54 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
+            if (!supabaseClient) {
+                initSupabase();
+            }
+            
+            if (!supabaseClient) {
+                showAlert('Erreur : Supabase non initialisé. Rechargez la page.', 'error');
+                return;
+            }
+
             try {
+                console.log('Tentative de connexion pour:', email);
+                
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email,
                     password
                 });
 
-                if (error) throw error;
+                console.log('Réponse de connexion:', { data, error });
 
+                if (error) {
+                    console.error('Erreur de connexion:', error);
+                    throw error;
+                }
+
+                if (!data.user) {
+                    throw new Error('Aucun utilisateur retourné');
+                }
+
+                console.log('Connexion réussie, utilisateur:', data.user);
                 currentUser = data.user;
+                
                 await loadUserProfile();
                 showDashboard();
                 showAlert('Connexion réussie !', 'success');
             } catch (error) {
-                showAlert(error.message, 'error');
+                console.error('Erreur complète de connexion:', error);
+                let errorMessage = error.message;
+                
+                // Messages d'erreur plus clairs
+                if (error.message.includes('Invalid login credentials')) {
+                    errorMessage = 'Email ou mot de passe incorrect.';
+                } else if (error.message.includes('Email not confirmed')) {
+                    errorMessage = 'Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte mail.';
+                } else if (error.message.includes('User not found')) {
+                    errorMessage = 'Aucun compte trouvé avec cet email.';
+                }
+                
+                showAlert(errorMessage, 'error');
             }
         };
 
@@ -929,7 +987,11 @@
             const organization = document.getElementById('signupOrganization').value;
 
             if (!supabaseClient) {
-                showAlert('Erreur : Supabase non initialisé. Vérifiez votre connexion.', 'error');
+                initSupabase();
+            }
+
+            if (!supabaseClient) {
+                showAlert('Erreur : Supabase non initialisé. Rechargez la page.', 'error');
                 return;
             }
 
@@ -1237,7 +1299,13 @@
         }
 
         // Init on load
-        init();
+        // Attendre que le DOM et Supabase soient chargés
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            // Le DOM est déjà chargé
+            setTimeout(init, 100); // Petit délai pour laisser Supabase se charger
+        }
     </script>
 </body>
 </html>
