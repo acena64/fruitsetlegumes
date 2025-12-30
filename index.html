@@ -850,8 +850,8 @@
             </p>
             <form onsubmit="handleSignup(event)">
                 <div class="form-group">
-                    <label>Token d'invitation</label>
-                    <input type="text" id="signupToken" required placeholder="Collez votre token d'invitation ici">
+                    <label>Token d&apos;invitation</label>
+                    <input type="text" id="signupToken" required placeholder="Collez votre token d&apos;invitation ici">
                     <small style="color: var(--text-light); font-size: 0.85rem; display: block; margin-top: 0.5rem;">
                         Le token vous a été envoyé par email
                     </small>
@@ -1099,7 +1099,7 @@
             const token = document.getElementById('signupToken').value.trim();
             
             if (!token) {
-                showAlert('Veuillez entrer un token d'invitation', 'error');
+                showAlert('Veuillez entrer un token d\'invitation', 'error');
                 return;
             }
 
@@ -1827,7 +1827,7 @@
                             ${data.token}
                             <button class="copy-btn" onclick="copyToken('${data.token}')">📋 Copier</button>
                         </div>
-                        <p><strong>Lien d'inscription:</strong></p>
+                        <p><strong>Lien d&apos;inscription:</strong></p>
                         <input type="text" readonly value="${window.location.origin}${window.location.pathname}?token=${data.token}" 
                                style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid var(--border); border-radius: 6px;"
                                onclick="this.select()">
@@ -1938,7 +1938,7 @@
                     <div class="info-box">
                         <h3 style="margin-bottom: 1rem;">${groupement.nom}</h3>
                         <p><strong>Description:</strong> ${groupement.description || '-'}</p>
-                        <p><strong>Code d'invitation:</strong> <span class="token-badge">${groupement.code_invite}</span></p>
+                        <p><strong>Code d&apos;invitation:</strong> <span class="token-badge">${groupement.code_invite}</span></p>
                         <p><strong>Créé le:</strong> ${formatDate(groupement.created_at)}</p>
                     </div>
 
@@ -2085,9 +2085,21 @@
 
         function showAlert(message, type, containerId = 'alertContainer') {
             const container = document.getElementById(containerId);
+            if (!container) {
+                console.warn('Alert container not found:', containerId);
+                return;
+            }
+            
             const alert = document.createElement('div');
             alert.className = `alert alert-${type} show`;
-            alert.textContent = message;
+            
+            // Si le message contient des balises HTML, utiliser innerHTML, sinon textContent
+            if (message.includes('<')) {
+                alert.innerHTML = message;
+            } else {
+                alert.textContent = message;
+            }
+            
             container.innerHTML = '';
             container.appendChild(alert);
 
