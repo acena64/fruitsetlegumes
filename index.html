@@ -943,7 +943,7 @@
                 if (error) throw error;
 
                 // Créer le profil utilisateur
-                const { error: profileError } = await supabase
+                const { error: profileError } = await supabaseClient
                     .from('profiles')
                     .insert([
                         {
@@ -957,7 +957,7 @@
                 if (profileError) throw profileError;
 
                 showAlert('Compte créé avec succès ! Veuillez vous connecter.', 'success');
-                toggleAuth();
+                window.toggleAuth();
             } catch (error) {
                 showAlert(error.message, 'error');
             }
