@@ -852,8 +852,8 @@
     </div>
 
     <script>
-        // Fonction toggleAuth - définie en premier pour être disponible immédiatement
-        function toggleAuth() {
+        // Fonction toggleAuth - définie globalement
+        window.toggleAuth = function() {
             console.log('toggleAuth appelée');
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
@@ -870,24 +870,27 @@
                 loginForm.classList.add('hidden');
                 signupForm.classList.remove('hidden');
             }
-        }
+        };
 
         // Configuration Supabase
         const SUPABASE_URL = 'https://uhunynflwochgqbbzyau.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVodW55bmZsd29jaGdxYmJ6eWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMDU5OTUsImV4cCI6MjA4MjY4MTk5NX0.c4Hj16A46NzlfITEga_Ax-hIJ5iC8VtehU3mOwu9PLU';
         
-        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        let supabaseClient = null;
+        if (window.supabase) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
 
         let currentUser = null;
         let currentRole = 'acheteur';
 
         // Initialisation
         async function init() {
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.warn('Supabase non chargé - mode démonstration');
                 return;
             }
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 currentUser = session.user;
                 await loadUserProfile();
@@ -896,13 +899,13 @@
         }
 
         // Auth Functions
-        async function handleLogin(e) {
+        window.handleLogin = async function(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email,
                     password
                 });
@@ -916,9 +919,9 @@
             } catch (error) {
                 showAlert(error.message, 'error');
             }
-        }
+        };
 
-        async function handleSignup(e) {
+        window.handleSignup = async function(e) {
             e.preventDefault();
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
@@ -926,7 +929,7 @@
             const organization = document.getElementById('signupOrganization').value;
 
             try {
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email,
                     password,
                     options: {
@@ -958,10 +961,10 @@
             } catch (error) {
                 showAlert(error.message, 'error');
             }
-        }
+        };
 
-        async function logout() {
-            await supabase.auth.signOut();
+        window.logout = async function() {
+            await supabaseClient.auth.signOut();
             currentUser = null;
             document.getElementById('authSection').classList.remove('hidden');
             document.getElementById('dashboard').classList.remove('active');
@@ -990,7 +993,7 @@
             loadDemandes();
         }
 
-        function switchTab(tab) {
+        window.switchTab = function(tab) {
             document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             
@@ -1094,24 +1097,24 @@
         }
 
         // Modals
-        function openDemandeModal() {
+        window.openDemandeModal = function() {
             document.getElementById('demandeModal').classList.add('active');
-        }
+        };
 
-        function closeDemandeModal() {
+        window.closeDemandeModal = function() {
             document.getElementById('demandeModal').classList.remove('active');
-        }
+        };
 
-        function openReponseModal(demandeId) {
+        window.openReponseModal = function(demandeId) {
             document.getElementById('reponseDemandeId').value = demandeId;
             document.getElementById('reponseModal').classList.add('active');
-        }
+        };
 
-        function closeReponseModal() {
+        window.closeReponseModal = function() {
             document.getElementById('reponseModal').classList.remove('active');
-        }
+        };
 
-        async function createDemande(e) {
+        window.createDemande = async function(e) {
             e.preventDefault();
 
             const demande = {
@@ -1137,9 +1140,9 @@
             closeDemandeModal();
             loadDemandes();
             e.target.reset();
-        }
+        };
 
-        async function submitReponse(e) {
+        window.submitReponse = async function(e) {
             e.preventDefault();
 
             const demandeId = document.getElementById('reponseDemandeId').value;
@@ -1164,12 +1167,12 @@
             closeReponseModal();
             loadDemandesRecues();
             e.target.reset();
-        }
+        };
 
-        function viewDemande(id) {
+        window.viewDemande = function(id) {
             // Implémenter la vue détaillée si nécessaire
             alert('Vue détaillée à implémenter pour la demande #' + id);
-        }
+        };
 
         // Helpers
         function formatDate(dateString) {
