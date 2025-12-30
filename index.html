@@ -928,7 +928,13 @@
             const role = document.getElementById('signupRole').value;
             const organization = document.getElementById('signupOrganization').value;
 
+            if (!supabaseClient) {
+                showAlert('Erreur : Supabase non initialisé. Vérifiez votre connexion.', 'error');
+                return;
+            }
+
             try {
+                console.log('Tentative de création de compte...');
                 const { data, error } = await supabaseClient.auth.signUp({
                     email,
                     password,
@@ -940,7 +946,12 @@
                     }
                 });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erreur signUp:', error);
+                    throw error;
+                }
+
+                console.log('Utilisateur créé:', data.user);
 
                 // Créer le profil utilisateur
                 const { error: profileError } = await supabaseClient
@@ -954,12 +965,30 @@
                         }
                     ]);
 
-                if (profileError) throw profileError;
+                if (profileError) {
+                    console.error('Erreur profil:', profileError);
+                    throw profileError;
+                }
 
+                console.log('Profil créé avec succès');
                 showAlert('Compte créé avec succès ! Veuillez vous connecter.', 'success');
                 window.toggleAuth();
             } catch (error) {
-                showAlert(error.message, 'error');
+                console.error('Erreur complète:', error);
+                let errorMessage = error.message;
+                
+                // Messages d'erreur plus clairs
+                if (error.message.includes('User already registered')) {
+                    errorMessage = 'Cet email est déjà utilisé. Essayez de vous connecter.';
+                } else if (error.message.includes('Password should be at least')) {
+                    errorMessage = 'Le mot de passe doit contenir au moins 6 caractères.';
+                } else if (error.message.includes('row-level security')) {
+                    errorMessage = 'Erreur de configuration de la base de données. Vérifiez les policies RLS.';
+                } else if (error.message.includes('relation') && error.message.includes('does not exist')) {
+                    errorMessage = 'La table profiles n\'existe pas. Exécutez le script SQL dans Supabase.';
+                }
+                
+                showAlert(errorMessage, 'error');
             }
         };
 
@@ -973,7 +1002,7 @@
 
         // User Profile
         async function loadUserProfile() {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('profiles')
                 .select('*')
                 .eq('id', currentUser.id)
@@ -1010,7 +1039,7 @@
 
         // Demandes
         async function loadDemandes() {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('demandes')
                 .select('*')
                 .eq('acheteur_id', currentUser.id)
@@ -1051,13 +1080,13 @@
         }
 
         async function loadDemandesRecues() {
-            const { data: profile } = await supabase
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('email')
                 .eq('id', currentUser.id)
                 .single();
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('demandes')
                 .select('*')
                 .eq('email_fournisseur', profile.email)
@@ -1127,7 +1156,7 @@
                 statut: 'pending'
             };
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('demandes')
                 .insert([demande]);
 
@@ -1153,7 +1182,7 @@
                 statut: 'sent'
             };
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('demandes')
                 .update(update)
                 .eq('id', demandeId);
