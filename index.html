@@ -1436,7 +1436,9 @@
         // User Profile
         async function loadUserProfile() {
             try {
-                console.log('Chargement du profil pour:', currentUser.id);
+                console.log('=== CHARGEMENT PROFIL ===');
+                console.log('ID utilisateur:', currentUser.id);
+                console.log('Email utilisateur:', currentUser.email);
                 
                 const { data, error } = await supabaseClient
                     .from('profiles')
@@ -1444,30 +1446,38 @@
                     .eq('id', currentUser.id)
                     .single();
 
+                console.log('Réponse Supabase:', { data, error });
+
                 if (error) {
-                    console.error('Erreur chargement profil:', error);
+                    console.error('❌ Erreur chargement profil:', error);
                     throw error;
                 }
 
                 if (data) {
-                    console.log('✅ Profil chargé:', data);
-                    console.log('📋 Rôle détecté:', data.role);
+                    console.log('✅ Profil chargé (données complètes):', JSON.stringify(data, null, 2));
+                    console.log('📋 Valeur du champ role:', data.role);
+                    console.log('📋 Type de role:', typeof data.role);
+                    console.log('📋 Role === null ?', data.role === null);
+                    console.log('📋 Role === undefined ?', data.role === undefined);
+                    console.log('📋 Role === "" ?', data.role === '');
                     
                     if (!data.role) {
-                        console.error('❌ RÔLE EST NULL !');
-                        showAlert('Votre profil n\'a pas de rôle défini. Contactez l\'administrateur.', 'error');
+                        console.error('❌ RÔLE EST VIDE/NULL/UNDEFINED !');
+                        console.error('Profil complet:', data);
+                        showAlert('Votre profil n\'a pas de rôle défini. Exécutez le script de diagnostic.', 'error');
                         return;
                     }
                     
                     currentRole = data.role;
                     document.getElementById('userEmail').textContent = data.nom || data.email;
-                    console.log('✅ Rôle actuel défini:', currentRole);
+                    console.log('✅ currentRole défini à:', currentRole);
+                    console.log('=== FIN CHARGEMENT PROFIL ===');
                 } else {
-                    console.error('❌ Aucun profil trouvé');
+                    console.error('❌ data est null ou undefined');
                     showAlert('Profil introuvable. Veuillez vous reconnecter.', 'error');
                 }
             } catch (error) {
-                console.error('❌ Erreur complète loadUserProfile:', error);
+                console.error('❌ Exception dans loadUserProfile:', error);
                 showAlert('Erreur de chargement du profil: ' + error.message, 'error');
             }
         }
@@ -1597,27 +1607,38 @@
         }
 
         async function loadInvitations() {
+            console.log('Chargement des invitations...');
             try {
-                const { data, error } = await supabaseClient
+                // Charger les invitations sans utiliser la vue
+                const { data: invitations, error } = await supabaseClient
                     .from('invitations')
-                    .select('*')
+                    .select(`
+                        *,
+                        profiles!invitations_invite_par_fkey(nom, email),
+                        groupements(nom, code_invite)
+                    `)
                     .eq('statut', 'en_attente')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erreur chargement invitations:', error);
+                    throw error;
+                }
 
                 const container = document.getElementById('invitationsList');
                 
-                if (!data || data.length === 0) {
+                if (!invitations || invitations.length === 0) {
                     container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucune invitation en attente</p>';
                     return;
                 }
+
+                console.log('Invitations chargées:', invitations);
 
                 let html = '<table class="modern-table"><thead><tr>';
                 html += '<th>Email</th><th>Rôle</th><th>Token</th><th>Expire le</th><th>Actions</th>';
                 html += '</tr></thead><tbody>';
 
-                data.forEach(inv => {
+                invitations.forEach(inv => {
                     const expireDate = new Date(inv.expire_le);
                     const isExpired = expireDate < new Date();
                     
@@ -1628,7 +1649,7 @@
                     html += `<td style="color: ${isExpired ? 'var(--danger)' : 'var(--text-medium)'};">${formatDate(inv.expire_le)}</td>`;
                     html += `<td>
                         <button class="btn btn-small" onclick="sendInvitationEmail('${inv.id}', '${inv.email}', '${inv.token}')">📧 Envoyer</button>
-                        <button class="btn btn-small btn-danger" onclick="revokeInvitation('${inv.id}')">❌</button>
+                        <button class="btn btn-small btn-danger" onclick="revokeInvitation(${inv.id})">❌</button>
                     </td>`;
                     html += '</tr>';
                 });
@@ -1636,9 +1657,11 @@
                 html += '</tbody></table>';
                 container.innerHTML = html;
 
+                console.log('Invitations affichées avec succès');
+
             } catch (error) {
                 console.error('Erreur chargement invitations:', error);
-                showAlert('Erreur lors du chargement des invitations', 'error', 'adminAlerts');
+                showAlert('Erreur lors du chargement des invitations: ' + error.message, 'error', 'adminAlerts');
             }
         }
 
