@@ -852,18 +852,41 @@
     </div>
 
     <script>
+        // Fonction toggleAuth - définie en premier pour être disponible immédiatement
+        function toggleAuth() {
+            console.log('toggleAuth appelée');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            
+            if (!loginForm || !signupForm) {
+                console.error('Éléments introuvables');
+                return;
+            }
+            
+            if (loginForm.classList.contains('hidden')) {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+            }
+        }
+
         // Configuration Supabase
-        // ⚠️ IMPORTANT: Remplacez ces valeurs par vos propres clés Supabase
-        const SUPABASE_URL = 'VOTRE_URL_SUPABASE';
-        const SUPABASE_ANON_KEY = 'VOTRE_CLE_ANON_SUPABASE';
+        const SUPABASE_URL = 'https://uhunynflwochgqbbzyau.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVodW55bmZsd29jaGdxYmJ6eWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMDU5OTUsImV4cCI6MjA4MjY4MTk5NX0.c4Hj16A46NzlfITEga_Ax-hIJ5iC8VtehU3mOwu9PLU';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         let currentUser = null;
         let currentRole = 'acheteur';
 
         // Initialisation
         async function init() {
+            if (!supabase) {
+                console.warn('Supabase non chargé - mode démonstration');
+                return;
+            }
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 currentUser = session.user;
@@ -943,19 +966,6 @@
             document.getElementById('authSection').classList.remove('hidden');
             document.getElementById('dashboard').classList.remove('active');
             document.getElementById('mainHeader').classList.add('hidden');
-        }
-
-        function toggleAuth() {
-            const loginForm = document.getElementById('loginForm');
-            const signupForm = document.getElementById('signupForm');
-            
-            if (loginForm.classList.contains('hidden')) {
-                loginForm.classList.remove('hidden');
-                signupForm.classList.add('hidden');
-            } else {
-                loginForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-            }
         }
 
         // User Profile
