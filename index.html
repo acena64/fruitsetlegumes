@@ -1048,7 +1048,7 @@
                 <button class="tab-btn" onclick="switchCoordTab('invitations')" id="tabInvitationsCoord">
                     📧 Invitations
                 </button>
-                <button class="tab-btn" onclick="switchCoordTab(\'fournisseurs\')" id="tabFournisseurs">
+                <button class="tab-btn" onclick="switchCoordTab('fournisseurs')" id="tabFournisseurs">
                     🚚 Fournisseurs
                 </button>
                 <button class="tab-btn" onclick="switchCoordTab('demandes')" id="tabDemandesCoord">
@@ -1644,7 +1644,7 @@
                 console.log('Supabase initialisé:', !!supabaseClient);
                 return true;
             } else {
-                console.error('window.supabase n\'est pas disponible !');
+                console.error('window.supabase n'est pas disponible !');
                 return false;
             }
         }
@@ -1658,7 +1658,7 @@
             const token = document.getElementById('signupToken').value.trim();
             
             if (!token) {
-                showAlert('Veuillez entrer un token d\'invitation', 'error');
+                showAlert('Veuillez entrer un token d'invitation', 'error');
                 return;
             }
 
@@ -1683,7 +1683,7 @@
                     .single();
 
                 if (error || !data) {
-                    throw new Error('Token d\'invitation invalide ou expiré');
+                    throw new Error('Token d'invitation invalide ou expiré');
                 }
 
                 // Vérifier l'expiration
@@ -1729,12 +1729,12 @@
 
         // Initialisation
         async function init() {
-            console.log('Démarrage de l\'application...');
+            console.log('Démarrage de l'application...');
             
             if (!supabaseClient) {
                 const success = initSupabase();
                 if (!success) {
-                    console.error('Impossible d\'initialiser Supabase');
+                    console.error('Impossible d'initialiser Supabase');
                     showAlert('Erreur de chargement. Veuillez recharger la page.', 'error');
                     return;
                 }
@@ -1745,7 +1745,7 @@
             const token = urlParams.get('token');
             
             if (token) {
-                console.log('Token trouvé dans l\'URL');
+                console.log('Token trouvé dans l'URL');
                 // Pré-remplir le formulaire d'inscription
                 document.getElementById('signupToken').value = token;
                 // Afficher le formulaire d'inscription
@@ -1765,7 +1765,7 @@
                     console.log('Aucune session active');
                 }
             } catch (error) {
-                console.error('Erreur lors de l\'initialisation:', error);
+                console.error('Erreur lors de l'initialisation:', error);
             }
         }
 
@@ -1830,7 +1830,7 @@
             e.preventDefault();
 
             if (!currentInvitation) {
-                showAlert('Veuillez d\'abord vérifier votre invitation', 'error');
+                showAlert('Veuillez d'abord vérifier votre invitation', 'error');
                 return;
             }
 
@@ -1991,7 +1991,7 @@
                 } else if (error.message.includes('row-level security')) {
                     errorMessage = 'Erreur de configuration. Vérifiez que le schéma v3 est bien installé.';
                 } else if (error.message.includes('relation') && error.message.includes('does not exist')) {
-                    errorMessage = 'Les tables nécessaires n\'existent pas. Exécutez le script SQL v3 dans Supabase.';
+                    errorMessage = 'Les tables nécessaires n'existent pas. Exécutez le script SQL v3 dans Supabase.';
                 }
                 
                 showAlert(errorMessage, 'error');
@@ -2037,7 +2037,7 @@
                     if (!data.role) {
                         console.error('❌ RÔLE EST VIDE/NULL/UNDEFINED !');
                         console.error('Profil complet:', data);
-                        showAlert('Votre profil n\'a pas de rôle défini. Exécutez le script de diagnostic.', 'error');
+                        showAlert('Votre profil n'a pas de rôle défini. Exécutez le script de diagnostic.', 'error');
                         return;
                     }
                     
@@ -2188,10 +2188,21 @@
                 document.getElementById('statsFournisseursCoord').textContent = fournisseurs || 0;
 
                 // Compter les demandes
-                const { count: demandes } = await supabaseClient
-                    .from('demandes')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('coordonnateur_id', currentUser.id);
+                // Compter les demandes du groupement (créées par les adhérents)
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                let demandes = 0;
+                if (profile && profile.groupement_id) {
+                    const { count } = await supabaseClient
+                        .from('demandes')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('groupement_id', profile.groupement_id);
+                    demandes = count || 0;
+                }
 
                 document.getElementById('statsDemandesCoord').textContent = demandes || 0;
 
@@ -2560,7 +2571,7 @@
                 const container = document.getElementById('mesBesoinsList');
 
                 if (!besoins || besoins.length === 0) {
-                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Vous n\'avez pas encore exprimé de besoins</p>';
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Vous n'avez pas encore exprimé de besoins</p>';
                     return;
                 }
 
@@ -4297,7 +4308,7 @@ window.addFournisseur = async function(e) {
         }
 
         if (!fournisseurUserId) {
-            throw new Error('Le fournisseur doit d\'abord s\'inscrire avec une invitation');
+            throw new Error('Le fournisseur doit d'abord s'inscrire avec une invitation');
         }
 
         // Vérifier si le fournisseur n'est pas déjà dans le groupement
