@@ -1743,34 +1743,57 @@
         }
 
         async function loadCoordonnateurs() {
+            console.log('Chargement des coordonnateurs...');
             try {
-                const { data, error } = await supabaseClient
+                // Charger les coordonnateurs sans jointure ambiguë
+                const { data: coords, error } = await supabaseClient
                     .from('profiles')
-                    .select(`
-                        *,
-                        groupements(nom, code_invite)
-                    `)
+                    .select('*')
                     .eq('role', 'coordonnateur')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erreur chargement coordonnateurs:', error);
+                    throw error;
+                }
 
                 const container = document.getElementById('coordonnateursList');
                 
-                if (!data || data.length === 0) {
+                if (!coords || coords.length === 0) {
                     container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun coordonnateur</p>';
                     return;
+                }
+
+                console.log('Coordonnateurs chargés:', coords.length);
+
+                // Charger les groupements séparément
+                const groupementsIds = coords.map(c => c.groupement_id).filter(Boolean);
+                let groupementsMap = {};
+                
+                if (groupementsIds.length > 0) {
+                    const { data: groupements } = await supabaseClient
+                        .from('groupements')
+                        .select('id, nom, code_invite')
+                        .in('id', groupementsIds);
+                    
+                    if (groupements) {
+                        groupements.forEach(g => {
+                            groupementsMap[g.id] = g;
+                        });
+                    }
                 }
 
                 let html = '<table class="modern-table"><thead><tr>';
                 html += '<th>Nom</th><th>Email</th><th>Groupement</th><th>Téléphone</th><th>Créé le</th>';
                 html += '</tr></thead><tbody>';
 
-                data.forEach(coord => {
+                coords.forEach(coord => {
+                    const groupement = coord.groupement_id ? groupementsMap[coord.groupement_id] : null;
+                    
                     html += '<tr>';
                     html += `<td><strong>${coord.nom}</strong></td>`;
                     html += `<td>${coord.email}</td>`;
-                    html += `<td>${coord.groupements?.nom || '<em>Aucun</em>'}</td>`;
+                    html += `<td>${groupement?.nom || '<em>Aucun</em>'}</td>`;
                     html += `<td>${coord.telephone || '-'}</td>`;
                     html += `<td>${formatDate(coord.created_at)}</td>`;
                     html += '</tr>';
@@ -1779,9 +1802,11 @@
                 html += '</tbody></table>';
                 container.innerHTML = html;
 
+                console.log('Coordonnateurs affichés avec succès');
+
             } catch (error) {
                 console.error('Erreur chargement coordonnateurs:', error);
-                showAlert('Erreur lors du chargement des coordonnateurs', 'error', 'adminAlerts');
+                showAlert('Erreur lors du chargement des coordonnateurs: ' + error.message, 'error', 'adminAlerts');
             }
         }
 
