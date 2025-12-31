@@ -1084,7 +1084,77 @@
         <!-- Panel Adhérent -->
         <div id="adherentPanel" class="panel">
             <h2>👥 Tableau de bord Adhérent</h2>
-            <p style="color: var(--text-medium);">Interface adhérent à venir...</p>
+            
+            <!-- Informations du groupement -->
+            <div class="card" id="groupementInfoAdherent" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--success) 0%, #40916c 100%); color: white; border: none;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h3 id="groupementNomAdherent" style="margin: 0 0 1rem 0; font-size: 1.5rem;">Mon Groupement</h3>
+                        <div id="groupementDetailsAdherent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques adhérent -->
+            <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+                <div class="card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsDemandesAdherent">0</div>
+                    <div style="opacity: 0.9;">Demandes actives</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, #8338ec 0%, #6a28d1 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsMesBesoins">0</div>
+                    <div style="opacity: 0.9;">Mes besoins</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, var(--success) 0%, #40916c 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsAdherentsTotal">0</div>
+                    <div style="opacity: 0.9;">Adhérents</div>
+                </div>
+            </div>
+
+            <div id="adherentAlerts"></div>
+
+            <!-- Onglets Adhérent -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border);">
+                <button class="tab-btn active" onclick="switchAdherentTab('demandes')" id="tabDemandesAdherent">
+                    📋 Demandes disponibles
+                </button>
+                <button class="tab-btn" onclick="switchAdherentTab('mesbesoins')" id="tabMesBesoins">
+                    🛒 Mes besoins
+                </button>
+                <button class="tab-btn" onclick="switchAdherentTab('membres')" id="tabMembresAdherent">
+                    👥 Membres
+                </button>
+            </div>
+
+            <!-- Contenu des onglets -->
+            <div id="adherentTabContent">
+                <!-- Tab Demandes disponibles -->
+                <div id="tabContentDemandesAdherent" class="admin-tab-content active">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Demandes de devis en cours
+                    </h3>
+                    <p style="color: var(--text-medium); margin-bottom: 2rem;">
+                        Voici les demandes créées par votre coordonnateur. Vous pouvez exprimer vos besoins pour chaque demande.
+                    </p>
+                    <div id="demandesAdherentList"></div>
+                </div>
+
+                <!-- Tab Mes besoins -->
+                <div id="tabContentMesBesoins" class="admin-tab-content">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Mes besoins exprimés
+                    </h3>
+                    <div id="mesBesoinsList"></div>
+                </div>
+
+                <!-- Tab Membres -->
+                <div id="tabContentMembresAdherent" class="admin-tab-content">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Membres du groupement
+                    </h3>
+                    <div id="membresAdherentList"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Panel Fournisseur -->
@@ -1434,7 +1504,7 @@
                 console.log('Utilisateur créé:', authData.user);
                 
                 // 2. Déterminer le groupement_id
-                let groupementId = currentInvitation.groupement_id;
+                let groupementId = null;
                 
                 // Si c'est un coordonnateur, créer son groupement
                 if (currentInvitation.role === 'coordonnateur') {
@@ -1457,6 +1527,20 @@
                     
                     groupementId = groupementData.id;
                     console.log('Groupement créé:', groupementData);
+                } else {
+                    // Pour adhérent ou fournisseur, récupérer le groupement du coordonnateur
+                    const { data: coordProfile, error: coordError } = await supabaseClient
+                        .from('profiles')
+                        .select('groupement_id')
+                        .eq('id', currentInvitation.invite_par)
+                        .single();
+                    
+                    if (coordError) {
+                        console.error('Erreur récupération groupement coordonnateur:', coordError);
+                    } else if (coordProfile && coordProfile.groupement_id) {
+                        groupementId = coordProfile.groupement_id;
+                        console.log('Groupement du coordonnateur récupéré:', groupementId);
+                    }
                 }
 
                 // 3. Créer le profil utilisateur
@@ -1638,7 +1722,7 @@
             } else if (currentRole === 'adherent') {
                 console.log('→ Panel adhérent');
                 document.getElementById('adherentPanel').classList.add('active');
-                // loadAdherentDashboard(); // À implémenter
+                loadAdherentDashboard();
             } else if (currentRole === 'fournisseur') {
                 console.log('→ Panel fournisseur');
                 document.getElementById('fournisseurPanel').classList.add('active');
@@ -1937,6 +2021,290 @@
                 console.error('Erreur création invitation:', error);
                 showAlert('Erreur: ' + error.message, 'error', 'coordAlerts');
             }
+        };
+
+        // Adhérent Dashboard
+        async function loadAdherentDashboard() {
+            console.log('Chargement du dashboard adhérent...');
+            await loadGroupementInfoAdherent();
+            await loadAdherentStats();
+            await loadDemandesAdherent();
+        }
+
+        async function loadGroupementInfoAdherent() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) {
+                    showAlert('Aucun groupement associé', 'warning', 'adherentAlerts');
+                    return;
+                }
+
+                const { data: groupement, error } = await supabaseClient
+                    .from('groupements')
+                    .select('*')
+                    .eq('id', profile.groupement_id)
+                    .single();
+
+                if (error) throw error;
+
+                if (groupement) {
+                    document.getElementById('groupementNomAdherent').textContent = groupement.nom;
+                    document.getElementById('groupementDetailsAdherent').innerHTML = `
+                        <p style="margin: 0.5rem 0; opacity: 0.9;">
+                            <strong>Description:</strong> ${groupement.description || '-'}
+                        </p>
+                        <p style="margin: 0.5rem 0; opacity: 0.9;">
+                            <strong>Coordonnateur:</strong> ${groupement.coordonnateur_nom || 'N/A'}
+                        </p>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Erreur chargement groupement adhérent:', error);
+            }
+        }
+
+        async function loadAdherentStats() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) return;
+
+                // Compter les demandes actives du groupement
+                const { data: demandes } = await supabaseClient
+                    .from('demandes')
+                    .select('id', { count: 'exact' })
+                    .eq('groupement_id', profile.groupement_id)
+                    .eq('statut', 'ouvert');
+
+                document.getElementById('statsDemandesAdherent').textContent = demandes?.length || 0;
+
+                // Compter mes besoins
+                const { count: mesBesoins } = await supabaseClient
+                    .from('besoins_adherents')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('adherent_id', currentUser.id);
+
+                document.getElementById('statsMesBesoins').textContent = mesBesoins || 0;
+
+                // Compter les adhérents du groupement
+                const { count: adherents } = await supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('groupement_id', profile.groupement_id)
+                    .eq('role', 'adherent');
+
+                document.getElementById('statsAdherentsTotal').textContent = adherents || 0;
+
+            } catch (error) {
+                console.error('Erreur chargement stats adhérent:', error);
+            }
+        }
+
+        async function loadDemandesAdherent() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) {
+                    document.getElementById('demandesAdherentList').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun groupement associé</p>';
+                    return;
+                }
+
+                const { data: demandes, error } = await supabaseClient
+                    .from('demandes')
+                    .select('*')
+                    .eq('groupement_id', profile.groupement_id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('demandesAdherentList');
+
+                if (!demandes || demandes.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucune demande disponible pour le moment</p>';
+                    return;
+                }
+
+                container.innerHTML = demandes.map(demande => {
+                    const dateLimite = new Date(demande.date_limite);
+                    const isExpired = dateLimite < new Date();
+                    
+                    return `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">${demande.nom_marche}</div>
+                                <span class="status-badge status-${demande.statut}">${demande.statut}</span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Description:</strong> ${demande.description || '-'}</p>
+                                <p><strong>Date limite:</strong> <span style="color: ${isExpired ? 'var(--danger)' : 'var(--text-dark)'};">${formatDate(demande.date_limite)}</span></p>
+                                <p><strong>Créée le:</strong> ${formatDate(demande.created_at)}</p>
+                            </div>
+                            <div class="card-footer">
+                                ${demande.statut === 'ouvert' ? 
+                                    '<button class="btn btn-small btn-success" onclick="exprimeBesoins(' + demande.id + ')">🛒 Exprimer mes besoins</button>' :
+                                    '<span style="color: var(--text-medium);">Demande fermée</span>'
+                                }
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Erreur chargement demandes adhérent:', error);
+                showAlert('Erreur lors du chargement des demandes', 'error', 'adherentAlerts');
+            }
+        }
+
+        async function loadMesBesoinsList() {
+            try {
+                const { data: besoins, error } = await supabaseClient
+                    .from('besoins_adherents')
+                    .select(`
+                        *,
+                        demandes(nom_marche, statut, date_limite)
+                    `)
+                    .eq('adherent_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('mesBesoinsList');
+
+                if (!besoins || besoins.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Vous n\'avez pas encore exprimé de besoins</p>';
+                    return;
+                }
+
+                let html = '<table class="modern-table"><thead><tr>';
+                html += '<th>Demande</th><th>Produits</th><th>Statut</th><th>Créé le</th><th>Actions</th>';
+                html += '</tr></thead><tbody>';
+
+                besoins.forEach(besoin => {
+                    const produits = besoin.produits ? JSON.parse(besoin.produits) : [];
+                    const produitsText = Array.isArray(produits) ? produits.join(', ') : produits;
+
+                    html += '<tr>';
+                    html += `<td><strong>${besoin.demandes?.nom_marche || 'N/A'}</strong></td>`;
+                    html += `<td>${produitsText || '-'}</td>`;
+                    html += `<td><span class="status-badge status-${besoin.statut}">${besoin.statut}</span></td>`;
+                    html += `<td>${formatDate(besoin.created_at)}</td>`;
+                    html += `<td>
+                        ${besoin.statut === 'brouillon' ? 
+                            '<button class="btn btn-small" onclick="editBesoin(' + besoin.id + ')">✏️ Modifier</button>' :
+                            '<span style="color: var(--text-light);">-</span>'
+                        }
+                    </td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Erreur chargement mes besoins:', error);
+                showAlert('Erreur lors du chargement de vos besoins', 'error', 'adherentAlerts');
+            }
+        }
+
+        async function loadMembresAdherent() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) {
+                    document.getElementById('membresAdherentList').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun groupement associé</p>';
+                    return;
+                }
+
+                const { data: membres, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('groupement_id', profile.groupement_id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('membresAdherentList');
+
+                if (!membres || membres.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun membre</p>';
+                    return;
+                }
+
+                let html = '<table class="modern-table"><thead><tr>';
+                html += '<th>Nom</th><th>Email</th><th>Rôle</th><th>Organisation</th>';
+                html += '</tr></thead><tbody>';
+
+                membres.forEach(membre => {
+                    html += '<tr>';
+                    html += `<td><strong>${membre.nom}</strong></td>`;
+                    html += `<td>${membre.email}</td>`;
+                    html += `<td><span class="status-badge status-${membre.role}">${getRoleText(membre.role)}</span></td>`;
+                    html += `<td>${membre.organisation || '-'}</td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Erreur chargement membres adhérent:', error);
+                showAlert('Erreur lors du chargement des membres', 'error', 'adherentAlerts');
+            }
+        }
+
+        // Gestion des onglets adhérent
+        window.switchAdherentTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+
+            const tabButtons = {
+                'demandes': 'tabDemandesAdherent',
+                'mesbesoins': 'tabMesBesoins',
+                'membres': 'tabMembresAdherent'
+            };
+
+            const tabContents = {
+                'demandes': 'tabContentDemandesAdherent',
+                'mesbesoins': 'tabContentMesBesoins',
+                'membres': 'tabContentMembresAdherent'
+            };
+
+            document.getElementById(tabButtons[tab]).classList.add('active');
+            document.getElementById(tabContents[tab]).classList.add('active');
+
+            if (tab === 'demandes') {
+                loadDemandesAdherent();
+            } else if (tab === 'mesbesoins') {
+                loadMesBesoinsList();
+            } else if (tab === 'membres') {
+                loadMembresAdherent();
+            }
+        };
+
+        window.exprimeBesoins = function(demandeId) {
+            showAlert('Fonctionnalité à venir : Exprimer vos besoins pour cette demande', 'info', 'adherentAlerts');
+        };
+
+        window.editBesoin = function(besoinId) {
+            showAlert('Fonctionnalité à venir : Modifier vos besoins', 'info', 'adherentAlerts');
         };
 
         // Admin Dashboard
