@@ -994,7 +994,91 @@
         <!-- Panel Coordonnateur -->
         <div id="coordonnateurPanel" class="panel">
             <h2>📋 Tableau de bord Coordonnateur</h2>
-            <p style="color: var(--text-medium);">Interface coordonnateur à venir...</p>
+            
+            <!-- Informations du groupement -->
+            <div class="card" id="groupementInfo" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border: none;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h3 id="groupementNom" style="margin: 0 0 1rem 0; font-size: 1.5rem;">Mon Groupement</h3>
+                        <div id="groupementDetails"></div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Code d'invitation</div>
+                        <div id="groupementCode" style="font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: 700;">------</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques du groupement -->
+            <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+                <div class="card" style="background: linear-gradient(135deg, var(--success) 0%, #40916c 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsAdherentsCoord">0</div>
+                    <div style="opacity: 0.9;">Adhérents</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, #8338ec 0%, #6a28d1 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsFournisseursCoord">0</div>
+                    <div style="opacity: 0.9;">Fournisseurs</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsDemandesCoord">0</div>
+                    <div style="opacity: 0.9;">Demandes</div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-small" onclick="openInvitationCoordModal('adherent')">
+                    ➕ Inviter un adhérent
+                </button>
+                <button class="btn btn-secondary btn-small" onclick="openInvitationCoordModal('fournisseur')">
+                    ➕ Inviter un fournisseur
+                </button>
+                <button class="btn btn-small" onclick="loadCoordDashboard()">
+                    🔄 Actualiser
+                </button>
+            </div>
+
+            <div id="coordAlerts"></div>
+
+            <!-- Onglets Coordonnateur -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border);">
+                <button class="tab-btn active" onclick="switchCoordTab('membres')" id="tabMembres">
+                    👥 Membres
+                </button>
+                <button class="tab-btn" onclick="switchCoordTab('invitations')" id="tabInvitationsCoord">
+                    📧 Invitations
+                </button>
+                <button class="tab-btn" onclick="switchCoordTab('demandes')" id="tabDemandesCoord">
+                    📋 Demandes
+                </button>
+            </div>
+
+            <!-- Contenu des onglets -->
+            <div id="coordTabContent">
+                <!-- Tab Membres -->
+                <div id="tabContentMembres" class="admin-tab-content active">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Membres du groupement
+                    </h3>
+                    <div id="membresList"></div>
+                </div>
+
+                <!-- Tab Invitations -->
+                <div id="tabContentInvitationsCoord" class="admin-tab-content">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Mes invitations
+                    </h3>
+                    <div id="invitationsCoordList"></div>
+                </div>
+
+                <!-- Tab Demandes -->
+                <div id="tabContentDemandesCoord" class="admin-tab-content">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Mes demandes de devis
+                    </h3>
+                    <div id="demandesCoordList"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Panel Adhérent -->
@@ -1047,6 +1131,36 @@
                 <button class="close-modal" onclick="closeGroupementModal()">×</button>
             </div>
             <div id="groupementDetails"></div>
+        </div>
+    </div>
+
+    <!-- Modal Invitation Coordonnateur (Adhérent/Fournisseur) -->
+    <div id="invitationCoordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="invitationCoordTitle">📧 Inviter un membre</h3>
+                <button class="close-modal" onclick="closeInvitationCoordModal()">×</button>
+            </div>
+            <form onsubmit="createInvitationCoord(event)">
+                <input type="hidden" id="invitationCoordRole">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="invitationCoordEmail" required placeholder="membre@etablissement.fr">
+                </div>
+                <div class="form-group">
+                    <label>Message personnalisé (optionnel)</label>
+                    <textarea id="invitationCoordMessage" placeholder="Ajoutez un message pour accompagner l'invitation..." style="min-height: 100px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Durée de validité</label>
+                    <select id="invitationCoordDuree">
+                        <option value="7">7 jours</option>
+                        <option value="14">14 jours</option>
+                        <option value="30">30 jours</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Créer l'invitation</button>
+            </form>
         </div>
     </div>
 
@@ -1520,7 +1634,7 @@
             } else if (currentRole === 'coordonnateur') {
                 console.log('→ Panel coordonnateur');
                 document.getElementById('coordonnateurPanel').classList.add('active');
-                // loadCoordDashboard(); // À implémenter
+                loadCoordDashboard();
             } else if (currentRole === 'adherent') {
                 console.log('→ Panel adhérent');
                 document.getElementById('adherentPanel').classList.add('active');
@@ -1536,6 +1650,294 @@
             
             console.log('=== FIN AFFICHAGE DASHBOARD ===');
         }
+
+        // Coordonnateur Dashboard
+        async function loadCoordDashboard() {
+            console.log('Chargement du dashboard coordonnateur...');
+            await loadGroupementInfo();
+            await loadCoordStats();
+            await loadMembres();
+        }
+
+        async function loadGroupementInfo() {
+            try {
+                // Charger le profil pour récupérer le groupement_id
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) {
+                    showAlert('Aucun groupement associé', 'warning', 'coordAlerts');
+                    return;
+                }
+
+                // Charger les infos du groupement
+                const { data: groupement, error } = await supabaseClient
+                    .from('groupements')
+                    .select('*')
+                    .eq('id', profile.groupement_id)
+                    .single();
+
+                if (error) throw error;
+
+                if (groupement) {
+                    document.getElementById('groupementNom').textContent = groupement.nom;
+                    document.getElementById('groupementCode').textContent = groupement.code_invite;
+                    document.getElementById('groupementDetails').innerHTML = `
+                        <p style="margin: 0.5rem 0; opacity: 0.9;">
+                            <strong>Description:</strong> ${groupement.description || '-'}
+                        </p>
+                        <p style="margin: 0.5rem 0; opacity: 0.9;">
+                            <strong>Créé le:</strong> ${formatDate(groupement.created_at)}
+                        </p>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Erreur chargement groupement:', error);
+            }
+        }
+
+        async function loadCoordStats() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) return;
+
+                // Compter les adhérents
+                const { count: adherents } = await supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('groupement_id', profile.groupement_id)
+                    .eq('role', 'adherent');
+
+                document.getElementById('statsAdherentsCoord').textContent = adherents || 0;
+
+                // Compter les fournisseurs
+                const { count: fournisseurs } = await supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('groupement_id', profile.groupement_id)
+                    .eq('role', 'fournisseur');
+
+                document.getElementById('statsFournisseursCoord').textContent = fournisseurs || 0;
+
+                // Compter les demandes
+                const { count: demandes } = await supabaseClient
+                    .from('demandes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('coordonnateur_id', currentUser.id);
+
+                document.getElementById('statsDemandesCoord').textContent = demandes || 0;
+
+            } catch (error) {
+                console.error('Erreur chargement stats coord:', error);
+            }
+        }
+
+        async function loadMembres() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('groupement_id')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (!profile || !profile.groupement_id) {
+                    document.getElementById('membresList').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun groupement associé</p>';
+                    return;
+                }
+
+                const { data: membres, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('groupement_id', profile.groupement_id)
+                    .in('role', ['adherent', 'fournisseur'])
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('membresList');
+
+                if (!membres || membres.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun membre pour le moment</p>';
+                    return;
+                }
+
+                let html = '<table class="modern-table"><thead><tr>';
+                html += '<th>Nom</th><th>Email</th><th>Rôle</th><th>Téléphone</th><th>Inscrit le</th>';
+                html += '</tr></thead><tbody>';
+
+                membres.forEach(membre => {
+                    html += '<tr>';
+                    html += `<td><strong>${membre.nom}</strong></td>`;
+                    html += `<td>${membre.email}</td>`;
+                    html += `<td><span class="status-badge status-${membre.role}">${getRoleText(membre.role)}</span></td>`;
+                    html += `<td>${membre.telephone || '-'}</td>`;
+                    html += `<td>${formatDate(membre.created_at)}</td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Erreur chargement membres:', error);
+                showAlert('Erreur lors du chargement des membres', 'error', 'coordAlerts');
+            }
+        }
+
+        async function loadInvitationsCoord() {
+            try {
+                const { data: invitations, error } = await supabaseClient
+                    .from('invitations')
+                    .select('*')
+                    .eq('invite_par', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('invitationsCoordList');
+
+                if (!invitations || invitations.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucune invitation créée</p>';
+                    return;
+                }
+
+                let html = '<table class="modern-table"><thead><tr>';
+                html += '<th>Email</th><th>Rôle</th><th>Token</th><th>Statut</th><th>Expire le</th><th>Actions</th>';
+                html += '</tr></thead><tbody>';
+
+                invitations.forEach(inv => {
+                    const expireDate = new Date(inv.expire_le);
+                    const isExpired = expireDate < new Date();
+
+                    html += '<tr>';
+                    html += `<td><strong>${inv.email}</strong></td>`;
+                    html += `<td><span class="status-badge status-${inv.role}">${getRoleText(inv.role)}</span></td>`;
+                    html += `<td><div class="token-badge">${inv.token.substring(0, 16)}...<button class="copy-btn" onclick="copyToken('${inv.token}')">📋</button></div></td>`;
+                    html += `<td><span class="status-badge status-${inv.statut}">${inv.statut}</span></td>`;
+                    html += `<td style="color: ${isExpired ? 'var(--danger)' : 'var(--text-medium)'};">${formatDate(inv.expire_le)}</td>`;
+                    html += `<td>
+                        <button class="btn btn-small" onclick="sendInvitationEmail('${inv.id}', '${inv.email}', '${inv.token}')">📧 Envoyer</button>
+                    </td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Erreur chargement invitations coord:', error);
+                showAlert('Erreur lors du chargement des invitations', 'error', 'coordAlerts');
+            }
+        }
+
+        // Gestion des onglets coordonnateur
+        window.switchCoordTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+
+            const tabButtons = {
+                'membres': 'tabMembres',
+                'invitations': 'tabInvitationsCoord',
+                'demandes': 'tabDemandesCoord'
+            };
+
+            const tabContents = {
+                'membres': 'tabContentMembres',
+                'invitations': 'tabContentInvitationsCoord',
+                'demandes': 'tabContentDemandesCoord'
+            };
+
+            document.getElementById(tabButtons[tab]).classList.add('active');
+            document.getElementById(tabContents[tab]).classList.add('active');
+
+            if (tab === 'membres') {
+                loadMembres();
+            } else if (tab === 'invitations') {
+                loadInvitationsCoord();
+            } else if (tab === 'demandes') {
+                // loadDemandesCoord(); // À implémenter
+                document.getElementById('demandesCoordList').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Fonctionnalité à venir</p>';
+            }
+        };
+
+        // Modal invitation coordonnateur
+        window.openInvitationCoordModal = function(role) {
+            document.getElementById('invitationCoordRole').value = role;
+            document.getElementById('invitationCoordTitle').textContent = role === 'adherent' ? '📧 Inviter un adhérent' : '📧 Inviter un fournisseur';
+            document.getElementById('invitationCoordModal').classList.add('active');
+        };
+
+        window.closeInvitationCoordModal = function() {
+            document.getElementById('invitationCoordModal').classList.remove('active');
+        };
+
+        window.createInvitationCoord = async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('invitationCoordEmail').value;
+            const role = document.getElementById('invitationCoordRole').value;
+            const message = document.getElementById('invitationCoordMessage').value;
+            const duree = parseInt(document.getElementById('invitationCoordDuree').value);
+
+            try {
+                const expireDate = new Date();
+                expireDate.setDate(expireDate.getDate() + duree);
+
+                const { data, error } = await supabaseClient
+                    .from('invitations')
+                    .insert([
+                        {
+                            email: email,
+                            role: role,
+                            invite_par: currentUser.id,
+                            expire_le: expireDate.toISOString(),
+                            metadata: message ? { message: message } : null
+                        }
+                    ])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                showAlert('Invitation créée avec succès !', 'success', 'coordAlerts');
+                closeInvitationCoordModal();
+                e.target.reset();
+
+                const tokenInfo = `
+                    <div class="success-box">
+                        <h4 style="margin-bottom: 1rem;">✅ Invitation créée</h4>
+                        <p><strong>Email:</strong> ${email}</p>
+                        <p><strong>Rôle:</strong> ${getRoleText(role)}</p>
+                        <p><strong>Token:</strong></p>
+                        <div class="token-badge" style="margin: 1rem 0;">
+                            ${data.token}
+                            <button class="copy-btn" onclick="copyToken('${data.token}')">📋 Copier</button>
+                        </div>
+                        <p><strong>Lien d&apos;inscription:</strong></p>
+                        <input type="text" readonly value="${window.location.origin}${window.location.pathname}?token=${data.token}"
+                               style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid var(--border); border-radius: 6px;"
+                               onclick="this.select()">
+                    </div>
+                `;
+
+                showAlert(tokenInfo, 'info', 'coordAlerts');
+                loadCoordStats();
+                switchCoordTab('invitations');
+
+            } catch (error) {
+                console.error('Erreur création invitation:', error);
+                showAlert('Erreur: ' + error.message, 'error', 'coordAlerts');
+            }
+        };
 
         // Admin Dashboard
         async function loadAdminDashboard() {
