@@ -1048,6 +1048,9 @@
                 <button class="tab-btn" onclick="switchCoordTab('invitations')" id="tabInvitationsCoord">
                     📧 Invitations
                 </button>
+                <button class="tab-btn" onclick="switchCoordTab(\'fournisseurs\')" id="tabFournisseurs">
+                    🚚 Fournisseurs
+                </button>
                 <button class="tab-btn" onclick="switchCoordTab('demandes')" id="tabDemandesCoord">
                     📋 Demandes
                 </button>
@@ -1078,6 +1081,45 @@
                     </h3>
                     <div id="demandesCoordList"></div>
                 </div>
+                <!-- Tab Fournisseurs -->
+                <div id="tabContentFournisseurs" class="admin-tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; margin: 0; color: var(--primary);">
+                            Mes fournisseurs
+                        </h3>
+                        <button class="btn btn-secondary btn-small" onclick="openAddFournisseurModal()">
+                            ➕ Ajouter un fournisseur
+                        </button>
+                    </div>
+                    
+                    <!-- Filtres et recherche -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <input type="text" id="searchFournisseur" placeholder="🔍 Rechercher..." 
+                               style="flex: 1; min-width: 200px; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;"
+                               oninput="filterFournisseurs()">
+                        <select id="filterStatut" onchange="filterFournisseurs()"
+                                style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
+                            <option value="all">Tous les fournisseurs</option>
+                            <option value="actif">Actifs uniquement</option>
+                            <option value="inactif">Inactifs uniquement</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Statistiques fournisseurs -->
+                    <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 2rem;">
+                        <div class="card" style="background: linear-gradient(135deg, var(--success) 0%, #40916c 100%); color: white; border: none; padding: 1rem;">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsFournisseursActifs">0</div>
+                            <div style="opacity: 0.9; font-size: 0.9rem;">Fournisseurs actifs</div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; border: none; padding: 1rem;">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsTotalReponses">0</div>
+                            <div style="opacity: 0.9; font-size: 0.9rem;">Réponses totales</div>
+                        </div>
+                    </div>
+                    
+                    <div id="fournisseursList"></div>
+                </div>
+
             </div>
         </div>
 
@@ -1324,6 +1366,152 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal Ajouter Fournisseur -->
+    <div id="addFournisseurModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>🚚 Ajouter un fournisseur</h3>
+                <button class="close-modal" onclick="closeAddFournisseurModal()">×</button>
+            </div>
+            <form onsubmit="addFournisseur(event)">
+                <div class="form-group">
+                    <label>Nom de l'entreprise *</label>
+                    <input type="text" id="fournisseurNomEntreprise" required placeholder="Ex: Fruits Bio du Sud">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email de contact *</label>
+                    <input type="email" id="fournisseurEmail" required placeholder="contact@entreprise.fr">
+                    <small style="color: var(--text-medium);">Une invitation sera envoyée à cette adresse</small>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <input type="tel" id="fournisseurTelephone" placeholder="05 59 12 34 56">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Zone de livraison</label>
+                        <input type="text" id="fournisseurZoneLivraison" placeholder="Ex: Nouvelle-Aquitaine">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Adresse complète</label>
+                    <textarea id="fournisseurAdresse" placeholder="Adresse, Code postal, Ville" style="min-height: 60px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Spécialités (séparer par des virgules)</label>
+                    <input type="text" id="fournisseurSpecialites" placeholder="Ex: Fruits bio, Légumes, Produits laitiers">
+                    <small style="color: var(--text-medium);">Exemple: Fruits bio, Légumes de saison, Produits locaux</small>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Délai de livraison moyen</label>
+                        <input type="text" id="fournisseurDelaiLivraison" placeholder="Ex: 24-48h">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Conditions de paiement</label>
+                        <input type="text" id="fournisseurConditionsPaiement" placeholder="Ex: 30 jours fin de mois">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes privées (visibles uniquement par vous)</label>
+                    <textarea id="fournisseurNotes" placeholder="Informations internes, contact privilégié, remarques..." style="min-height: 80px;"></textarea>
+                </div>
+                
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="fournisseurEnvoyerInvitation" checked>
+                    <label for="fournisseurEnvoyerInvitation" style="margin: 0;">Envoyer une invitation par email</label>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-small" onclick="closeAddFournisseurModal()">Annuler</button>
+                    <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Modifier Fournisseur -->
+    <div id="editFournisseurModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>✏️ Modifier le fournisseur</h3>
+                <button class="close-modal" onclick="closeEditFournisseurModal()">×</button>
+            </div>
+            <form onsubmit="updateFournisseur(event)">
+                <input type="hidden" id="editFournisseurId">
+                
+                <div class="form-group">
+                    <label>Nom de l'entreprise *</label>
+                    <input type="text" id="editFournisseurNomEntreprise" required>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <input type="tel" id="editFournisseurTelephone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Zone de livraison</label>
+                        <input type="text" id="editFournisseurZoneLivraison">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Adresse complète</label>
+                    <textarea id="editFournisseurAdresse" style="min-height: 60px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Spécialités (séparer par des virgules)</label>
+                    <input type="text" id="editFournisseurSpecialites">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Délai de livraison moyen</label>
+                        <input type="text" id="editFournisseurDelaiLivraison">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Conditions de paiement</label>
+                        <input type="text" id="editFournisseurConditionsPaiement">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes privées</label>
+                    <textarea id="editFournisseurNotes" style="min-height: 80px;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-small" onclick="closeEditFournisseurModal()">Annuler</button>
+                    <button type="submit" class="btn btn-success">💾 Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Voir Réponses Fournisseur -->
+    <div id="viewReponsesFournisseurModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>📊 Réponses du fournisseur</h3>
+                <button class="close-modal" onclick="closeViewReponsesFournisseurModal()">×</button>
+            </div>
+            <div id="reponsesFournisseurContent"></div>
+        </div>
+    </div>
+
 
     <!-- Modal Créer Demande (Adhérent) -->
     <div id="createDemandeModal" class="modal">
@@ -3781,6 +3969,575 @@ window.repondreBesoin = async function(e) {
     } catch (error) {
         console.error('Erreur envoi réponse:', error);
         showAlert('Erreur: ' + error.message, 'error', 'fournisseurAlerts');
+    }
+};
+
+
+// ============================================
+// MODULE FOURNISSEURS - Fonctions JavaScript
+// ============================================
+
+// Variables globales
+let allFournisseurs = [];
+
+// Charger les fournisseurs du groupement
+async function loadFournisseurs() {
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) {
+            document.getElementById('fournisseursList').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucun groupement associé</p>';
+            return;
+        }
+
+        // Charger les fournisseurs avec leurs profils
+        const { data: fournisseurs, error } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .select(`
+                *,
+                profiles:fournisseur_id (nom, email)
+            `)
+            .eq('groupement_id', profile.groupement_id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        allFournisseurs = fournisseurs || [];
+        
+        // Mettre à jour les statistiques
+        await loadFournisseursStats();
+        
+        // Afficher les fournisseurs
+        displayFournisseurs(allFournisseurs);
+
+    } catch (error) {
+        console.error('Erreur chargement fournisseurs:', error);
+        showAlert('Erreur lors du chargement des fournisseurs', 'error', 'coordAlerts');
+    }
+}
+
+// Afficher les fournisseurs
+function displayFournisseurs(fournisseurs) {
+    const container = document.getElementById('fournisseursList');
+
+    if (!fournisseurs || fournisseurs.length === 0) {
+        container.innerHTML = `
+            <p style="text-align:center;color:var(--text-light);padding:2rem;">
+                Aucun fournisseur enregistré.<br>
+                <button class="btn btn-secondary btn-small" onclick="openAddFournisseurModal()" style="margin-top: 1rem;">
+                    ➕ Ajouter votre premier fournisseur
+                </button>
+            </p>
+        `;
+        return;
+    }
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 1.5rem;">';
+
+    fournisseurs.forEach(async (f) => {
+        const specialites = f.specialites ? f.specialites.join(', ') : 'Non spécifié';
+        const statut = f.actif ? 'actif' : 'inactif';
+        const statutColor = f.actif ? 'var(--success)' : 'var(--text-light)';
+        const statutIcon = f.actif ? '✅' : '⏸️';
+        
+        html += `
+            <div class="card" style="border-left: 4px solid ${statutColor};">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                            🏢 ${f.nom_entreprise}
+                            <span style="font-size: 0.9rem; font-weight: normal; color: ${statutColor};">${statutIcon} ${statut}</span>
+                        </h4>
+                        <p style="margin: 0.25rem 0; color: var(--text-medium); font-size: 0.95rem;">
+                            👤 ${f.profiles?.nom || 'N/A'} | 📧 ${f.profiles?.email || 'N/A'}
+                        </p>
+                        ${f.telephone ? `<p style="margin: 0.25rem 0; color: var(--text-medium); font-size: 0.95rem;">📞 ${f.telephone}</p>` : ''}
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; background: var(--bg-light); border-radius: 8px;">
+                    <div>
+                        <strong style="color: var(--text-medium); font-size: 0.85rem;">🎯 Spécialités:</strong>
+                        <p style="margin: 0.25rem 0 0 0;">${specialites}</p>
+                    </div>
+                    ${f.zone_livraison ? `
+                    <div>
+                        <strong style="color: var(--text-medium); font-size: 0.85rem;">📍 Zone:</strong>
+                        <p style="margin: 0.25rem 0 0 0;">${f.zone_livraison}</p>
+                    </div>
+                    ` : ''}
+                    ${f.delai_livraison ? `
+                    <div>
+                        <strong style="color: var(--text-medium); font-size: 0.85rem;">⏱️ Délai:</strong>
+                        <p style="margin: 0.25rem 0 0 0;">${f.delai_livraison}</p>
+                    </div>
+                    ` : ''}
+                    ${f.conditions_paiement ? `
+                    <div>
+                        <strong style="color: var(--text-medium); font-size: 0.85rem;">💳 Paiement:</strong>
+                        <p style="margin: 0.25rem 0 0 0;">${f.conditions_paiement}</p>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                ${f.adresse ? `
+                <p style="margin: 0.5rem 0; color: var(--text-medium); font-size: 0.9rem;">
+                    <strong>📍 Adresse:</strong> ${f.adresse}
+                </p>
+                ` : ''}
+                
+                ${f.note_coord ? `
+                <div style="background: #fff3cd; padding: 0.75rem; border-radius: 6px; margin: 1rem 0;">
+                    <strong style="color: #856404;">📝 Notes privées:</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: #856404;">${f.note_coord}</p>
+                </div>
+                ` : ''}
+                
+                <div id="fournisseur-stats-${f.id}" style="display: flex; gap: 2rem; margin: 1rem 0; padding: 1rem; background: var(--bg-light); border-radius: 8px;">
+                    <div><strong>💰 Réponses:</strong> <span class="loading">Chargement...</span></div>
+                    <div><strong>📅 Dernière activité:</strong> <span class="loading">Chargement...</span></div>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <button class="btn btn-small" onclick="openEditFournisseurModal(${f.id})">✏️ Modifier</button>
+                    <button class="btn btn-small btn-secondary" onclick="viewFournisseurReponses('${f.fournisseur_id}', '${f.nom_entreprise}')">👁️ Voir réponses</button>
+                    ${f.actif 
+                        ? `<button class="btn btn-small btn-danger" onclick="toggleFournisseurActif(${f.id}, false)">⏸️ Désactiver</button>`
+                        : `<button class="btn btn-small btn-success" onclick="toggleFournisseurActif(${f.id}, true)">▶️ Activer</button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Charger les stats pour chaque fournisseur
+    fournisseurs.forEach(f => loadFournisseurStats(f.id, f.fournisseur_id));
+}
+
+// Charger les stats d'un fournisseur spécifique
+async function loadFournisseurStats(fournisseurGroupementId, fournisseurUserId) {
+    try {
+        // Compter les réponses
+        const { count: nbReponses } = await supabaseClient
+            .from('reponses_fournisseurs')
+            .select('*', { count: 'exact', head: true })
+            .eq('fournisseur_id', fournisseurUserId);
+
+        // Dernière réponse
+        const { data: derniereReponse } = await supabaseClient
+            .from('reponses_fournisseurs')
+            .select('created_at')
+            .eq('fournisseur_id', fournisseurUserId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        const statsDiv = document.getElementById(`fournisseur-stats-${fournisseurGroupementId}`);
+        if (statsDiv) {
+            const derniere = derniereReponse 
+                ? `${formatDate(derniereReponse.created_at)}` 
+                : 'Aucune';
+            
+            statsDiv.innerHTML = `
+                <div><strong>💰 Réponses:</strong> ${nbReponses || 0}</div>
+                <div><strong>📅 Dernière activité:</strong> ${derniere}</div>
+            `;
+        }
+    } catch (error) {
+        console.error('Erreur chargement stats fournisseur:', error);
+    }
+}
+
+// Charger les statistiques globales des fournisseurs
+async function loadFournisseursStats() {
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) return;
+
+        // Compter fournisseurs actifs
+        const { count: nbActifs } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .select('*', { count: 'exact', head: true })
+            .eq('groupement_id', profile.groupement_id)
+            .eq('actif', true);
+
+        document.getElementById('statsFournisseursActifs').textContent = nbActifs || 0;
+
+        // Compter toutes les réponses des fournisseurs du groupement
+        const { data: fournisseurs } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .select('fournisseur_id')
+            .eq('groupement_id', profile.groupement_id);
+
+        if (fournisseurs && fournisseurs.length > 0) {
+            const fournisseurIds = fournisseurs.map(f => f.fournisseur_id);
+            const { count: totalReponses } = await supabaseClient
+                .from('reponses_fournisseurs')
+                .select('*', { count: 'exact', head: true })
+                .in('fournisseur_id', fournisseurIds);
+
+            document.getElementById('statsTotalReponses').textContent = totalReponses || 0;
+        }
+
+    } catch (error) {
+        console.error('Erreur chargement stats fournisseurs:', error);
+    }
+}
+
+// Filtrer les fournisseurs
+window.filterFournisseurs = function() {
+    const searchTerm = document.getElementById('searchFournisseur').value.toLowerCase();
+    const statutFilter = document.getElementById('filterStatut').value;
+
+    let filtered = allFournisseurs;
+
+    // Filtre par recherche
+    if (searchTerm) {
+        filtered = filtered.filter(f => 
+            f.nom_entreprise.toLowerCase().includes(searchTerm) ||
+            f.profiles?.nom?.toLowerCase().includes(searchTerm) ||
+            f.profiles?.email?.toLowerCase().includes(searchTerm) ||
+            (f.specialites && f.specialites.some(s => s.toLowerCase().includes(searchTerm)))
+        );
+    }
+
+    // Filtre par statut
+    if (statutFilter === 'actif') {
+        filtered = filtered.filter(f => f.actif === true);
+    } else if (statutFilter === 'inactif') {
+        filtered = filtered.filter(f => f.actif === false);
+    }
+
+    displayFournisseurs(filtered);
+};
+
+// Modal ajouter fournisseur
+window.openAddFournisseurModal = function() {
+    document.getElementById('addFournisseurModal').classList.add('active');
+};
+
+window.closeAddFournisseurModal = function() {
+    document.getElementById('addFournisseurModal').classList.remove('active');
+    document.querySelector('#addFournisseurModal form').reset();
+};
+
+// Ajouter un fournisseur
+window.addFournisseur = async function(e) {
+    e.preventDefault();
+
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) {
+            throw new Error('Aucun groupement associé');
+        }
+
+        const email = document.getElementById('fournisseurEmail').value;
+        const nomEntreprise = document.getElementById('fournisseurNomEntreprise').value;
+        const telephone = document.getElementById('fournisseurTelephone').value;
+        const adresse = document.getElementById('fournisseurAdresse').value;
+        const specialitesStr = document.getElementById('fournisseurSpecialites').value;
+        const specialites = specialitesStr ? specialitesStr.split(',').map(s => s.trim()) : [];
+        const zoneLivraison = document.getElementById('fournisseurZoneLivraison').value;
+        const delaiLivraison = document.getElementById('fournisseurDelaiLivraison').value;
+        const conditionsPaiement = document.getElementById('fournisseurConditionsPaiement').value;
+        const notes = document.getElementById('fournisseurNotes').value;
+        const envoyerInvitation = document.getElementById('fournisseurEnvoyerInvitation').checked;
+
+        // Vérifier si le fournisseur existe déjà
+        const { data: existingProfile } = await supabaseClient
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        let fournisseurUserId = existingProfile?.id;
+
+        // Si le fournisseur n'existe pas et qu'on doit envoyer une invitation
+        if (!existingProfile && envoyerInvitation) {
+            // Créer l'invitation
+            const expireDate = new Date();
+            expireDate.setDate(expireDate.getDate() + 30);
+
+            const { data: invitation, error: invitError } = await supabaseClient
+                .from('invitations')
+                .insert([{
+                    email: email,
+                    role: 'fournisseur',
+                    invite_par: currentUser.id,
+                    expire_le: expireDate.toISOString()
+                }])
+                .select()
+                .single();
+
+            if (invitError) throw invitError;
+
+            showAlert(`Invitation envoyée à ${email}. Le fournisseur sera ajouté une fois inscrit.`, 'success', 'coordAlerts');
+            
+            // Créer un profil temporaire pour le fournisseur (sera complété à l'inscription)
+            // Pour l'instant, on ne peut pas créer l'entrée dans fournisseurs_groupement sans user_id
+            closeAddFournisseurModal();
+            return;
+        }
+
+        if (!fournisseurUserId) {
+            throw new Error('Le fournisseur doit d\'abord s\'inscrire avec une invitation');
+        }
+
+        // Vérifier si le fournisseur n'est pas déjà dans le groupement
+        const { data: existing } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .select('id')
+            .eq('fournisseur_id', fournisseurUserId)
+            .eq('groupement_id', profile.groupement_id)
+            .single();
+
+        if (existing) {
+            throw new Error('Ce fournisseur est déjà enregistré dans votre groupement');
+        }
+
+        // Créer l'entrée fournisseur_groupement
+        const { error: insertError } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .insert([{
+                fournisseur_id: fournisseurUserId,
+                groupement_id: profile.groupement_id,
+                nom_entreprise: nomEntreprise,
+                telephone: telephone,
+                adresse: adresse,
+                specialites: specialites,
+                zone_livraison: zoneLivraison,
+                delai_livraison: delaiLivraison,
+                conditions_paiement: conditionsPaiement,
+                note_coord: notes,
+                actif: true
+            }]);
+
+        if (insertError) throw insertError;
+
+        showAlert('Fournisseur ajouté avec succès !', 'success', 'coordAlerts');
+        closeAddFournisseurModal();
+        loadFournisseurs();
+
+    } catch (error) {
+        console.error('Erreur ajout fournisseur:', error);
+        showAlert('Erreur: ' + error.message, 'error', 'coordAlerts');
+    }
+};
+
+// Modal modifier fournisseur
+window.openEditFournisseurModal = async function(fournisseurId) {
+    try {
+        const { data: fournisseur, error } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .select('*')
+            .eq('id', fournisseurId)
+            .single();
+
+        if (error) throw error;
+
+        document.getElementById('editFournisseurId').value = fournisseur.id;
+        document.getElementById('editFournisseurNomEntreprise').value = fournisseur.nom_entreprise || '';
+        document.getElementById('editFournisseurTelephone').value = fournisseur.telephone || '';
+        document.getElementById('editFournisseurAdresse').value = fournisseur.adresse || '';
+        document.getElementById('editFournisseurSpecialites').value = fournisseur.specialites ? fournisseur.specialites.join(', ') : '';
+        document.getElementById('editFournisseurZoneLivraison').value = fournisseur.zone_livraison || '';
+        document.getElementById('editFournisseurDelaiLivraison').value = fournisseur.delai_livraison || '';
+        document.getElementById('editFournisseurConditionsPaiement').value = fournisseur.conditions_paiement || '';
+        document.getElementById('editFournisseurNotes').value = fournisseur.note_coord || '';
+
+        document.getElementById('editFournisseurModal').classList.add('active');
+
+    } catch (error) {
+        console.error('Erreur chargement fournisseur:', error);
+        showAlert('Erreur lors du chargement des données', 'error', 'coordAlerts');
+    }
+};
+
+window.closeEditFournisseurModal = function() {
+    document.getElementById('editFournisseurModal').classList.remove('active');
+};
+
+// Mettre à jour un fournisseur
+window.updateFournisseur = async function(e) {
+    e.preventDefault();
+
+    try {
+        const id = document.getElementById('editFournisseurId').value;
+        const nomEntreprise = document.getElementById('editFournisseurNomEntreprise').value;
+        const telephone = document.getElementById('editFournisseurTelephone').value;
+        const adresse = document.getElementById('editFournisseurAdresse').value;
+        const specialitesStr = document.getElementById('editFournisseurSpecialites').value;
+        const specialites = specialitesStr ? specialitesStr.split(',').map(s => s.trim()) : [];
+        const zoneLivraison = document.getElementById('editFournisseurZoneLivraison').value;
+        const delaiLivraison = document.getElementById('editFournisseurDelaiLivraison').value;
+        const conditionsPaiement = document.getElementById('editFournisseurConditionsPaiement').value;
+        const notes = document.getElementById('editFournisseurNotes').value;
+
+        const { error } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .update({
+                nom_entreprise: nomEntreprise,
+                telephone: telephone,
+                adresse: adresse,
+                specialites: specialites,
+                zone_livraison: zoneLivraison,
+                delai_livraison: delaiLivraison,
+                conditions_paiement: conditionsPaiement,
+                note_coord: notes
+            })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showAlert('Fournisseur mis à jour avec succès !', 'success', 'coordAlerts');
+        closeEditFournisseurModal();
+        loadFournisseurs();
+
+    } catch (error) {
+        console.error('Erreur mise à jour fournisseur:', error);
+        showAlert('Erreur: ' + error.message, 'error', 'coordAlerts');
+    }
+};
+
+// Activer/Désactiver un fournisseur
+window.toggleFournisseurActif = async function(fournisseurId, actif) {
+    try {
+        const action = actif ? 'activer' : 'désactiver';
+        if (!confirm(`Voulez-vous vraiment ${action} ce fournisseur ?`)) {
+            return;
+        }
+
+        const { error } = await supabaseClient
+            .from('fournisseurs_groupement')
+            .update({ actif: actif })
+            .eq('id', fournisseurId);
+
+        if (error) throw error;
+
+        showAlert(`Fournisseur ${actif ? 'activé' : 'désactivé'} avec succès !`, 'success', 'coordAlerts');
+        loadFournisseurs();
+
+    } catch (error) {
+        console.error('Erreur toggle fournisseur:', error);
+        showAlert('Erreur: ' + error.message, 'error', 'coordAlerts');
+    }
+};
+
+// Voir les réponses d'un fournisseur
+window.viewFournisseurReponses = async function(fournisseurUserId, nomEntreprise) {
+    try {
+        const { data: reponses, error } = await supabaseClient
+            .from('reponses_fournisseurs')
+            .select(`
+                *,
+                demandes:demande_id (titre, adherent_id),
+                besoins_adherents:besoin_id (produit, quantite, unite)
+            `)
+            .eq('fournisseur_id', fournisseurUserId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('reponsesFournisseurContent');
+
+        if (!reponses || reponses.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucune réponse enregistrée</p>';
+        } else {
+            let html = `
+                <h4 style="margin: 0 0 1rem 0;">Réponses de ${nomEntreprise}</h4>
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Demande</th>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>Prix unitaire</th>
+                            <th>Total</th>
+                            <th>Disponibilité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reponses.forEach(r => {
+                const total = (r.prix_unitaire * (r.besoins_adherents?.quantite || 0)).toFixed(2);
+                html += `
+                    <tr>
+                        <td>${formatDate(r.created_at)}</td>
+                        <td>${r.demandes?.titre || 'N/A'}</td>
+                        <td>${r.besoins_adherents?.produit || 'N/A'}</td>
+                        <td>${r.besoins_adherents?.quantite || 0} ${r.besoins_adherents?.unite || ''}</td>
+                        <td>${r.prix_unitaire}€</td>
+                        <td><strong>${total}€</strong></td>
+                        <td><span class="status-badge">${r.disponibilite}</span></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        document.getElementById('viewReponsesFournisseurModal').classList.add('active');
+
+    } catch (error) {
+        console.error('Erreur chargement réponses:', error);
+        showAlert('Erreur lors du chargement des réponses', 'error', 'coordAlerts');
+    }
+};
+
+window.closeViewReponsesFournisseurModal = function() {
+    document.getElementById('viewReponsesFournisseurModal').classList.remove('active');
+};
+
+// Mettre à jour la fonction switchCoordTab
+window.switchCoordTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+
+    const tabButtons = {
+        'membres': 'tabMembres',
+        'invitations': 'tabInvitationsCoord',
+        'fournisseurs': 'tabFournisseurs',
+        'demandes': 'tabDemandesCoord'
+    };
+
+    const tabContents = {
+        'membres': 'tabContentMembres',
+        'invitations': 'tabContentInvitationsCoord',
+        'fournisseurs': 'tabContentFournisseurs',
+        'demandes': 'tabContentDemandesCoord'
+    };
+
+    document.getElementById(tabButtons[tab]).classList.add('active');
+    document.getElementById(tabContents[tab]).classList.add('active');
+
+    if (tab === 'membres') {
+        loadMembres();
+    } else if (tab === 'invitations') {
+        loadInvitationsCoord();
+    } else if (tab === 'fournisseurs') {
+        loadFournisseurs();
+    } else if (tab === 'demandes') {
+        document.getElementById('demandesCoordList').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Fonctionnalité à venir</p>';
     }
 };
 
