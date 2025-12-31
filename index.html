@@ -1609,14 +1609,10 @@
         async function loadInvitations() {
             console.log('Chargement des invitations...');
             try {
-                // Charger les invitations sans utiliser la vue
+                // Charger les invitations SANS jointure profiles
                 const { data: invitations, error } = await supabaseClient
                     .from('invitations')
-                    .select(`
-                        *,
-                        profiles!invitations_invite_par_fkey(nom, email),
-                        groupements(nom, code_invite)
-                    `)
+                    .select('*')
                     .eq('statut', 'en_attente')
                     .order('created_at', { ascending: false });
 
@@ -1632,20 +1628,37 @@
                     return;
                 }
 
-                console.log('Invitations chargées:', invitations);
+                console.log('Invitations chargées:', invitations.length);
+
+                // Charger les infos des créateurs séparément
+                const creatorsIds = [...new Set(invitations.map(inv => inv.invite_par))];
+                const { data: creators } = await supabaseClient
+                    .from('profiles')
+                    .select('id, nom, email')
+                    .in('id', creatorsIds);
+
+                // Créer un map pour retrouver facilement les créateurs
+                const creatorsMap = {};
+                if (creators) {
+                    creators.forEach(c => {
+                        creatorsMap[c.id] = c;
+                    });
+                }
 
                 let html = '<table class="modern-table"><thead><tr>';
-                html += '<th>Email</th><th>Rôle</th><th>Token</th><th>Expire le</th><th>Actions</th>';
+                html += '<th>Email</th><th>Rôle</th><th>Token</th><th>Créé par</th><th>Expire le</th><th>Actions</th>';
                 html += '</tr></thead><tbody>';
 
                 invitations.forEach(inv => {
                     const expireDate = new Date(inv.expire_le);
                     const isExpired = expireDate < new Date();
+                    const creator = creatorsMap[inv.invite_par];
                     
                     html += '<tr>';
                     html += `<td><strong>${inv.email}</strong></td>`;
                     html += `<td><span class="status-badge status-${inv.role}">${getRoleText(inv.role)}</span></td>`;
                     html += `<td><div class="token-badge">${inv.token.substring(0, 16)}...<button class="copy-btn" onclick="copyToken('${inv.token}')">📋</button></div></td>`;
+                    html += `<td>${creator?.nom || 'N/A'}</td>`;
                     html += `<td style="color: ${isExpired ? 'var(--danger)' : 'var(--text-medium)'};">${formatDate(inv.expire_le)}</td>`;
                     html += `<td>
                         <button class="btn btn-small" onclick="sendInvitationEmail('${inv.id}', '${inv.email}', '${inv.token}')">📧 Envoyer</button>
