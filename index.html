@@ -1099,26 +1099,36 @@
             <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
                 <div class="card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; border: none;">
                     <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsDemandesAdherent">0</div>
-                    <div style="opacity: 0.9;">Demandes actives</div>
+                    <div style="opacity: 0.9;">Mes demandes</div>
                 </div>
                 <div class="card" style="background: linear-gradient(135deg, #8338ec 0%, #6a28d1 100%); color: white; border: none;">
                     <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsMesBesoins">0</div>
                     <div style="opacity: 0.9;">Mes besoins</div>
                 </div>
-                <div class="card" style="background: linear-gradient(135deg, var(--success) 0%, #40916c 100%); color: white; border: none;">
-                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsAdherentsTotal">0</div>
-                    <div style="opacity: 0.9;">Adhérents</div>
+                <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsReponsesRecues">0</div>
+                    <div style="opacity: 0.9;">Réponses reçues</div>
                 </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-small" onclick="openCreateDemandeModal()">
+                    ➕ Créer une demande
+                </button>
+                <button class="btn btn-small" onclick="loadAdherentDashboard()">
+                    🔄 Actualiser
+                </button>
             </div>
 
             <div id="adherentAlerts"></div>
 
             <!-- Onglets Adhérent -->
             <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border);">
-                <button class="tab-btn active" onclick="switchAdherentTab('demandes')" id="tabDemandesAdherent">
-                    📋 Demandes disponibles
+                <button class="tab-btn active" onclick="switchAdherentTab('mesDemandes')" id="tabMesDemandes">
+                    📋 Mes demandes
                 </button>
-                <button class="tab-btn" onclick="switchAdherentTab('mesbesoins')" id="tabMesBesoins">
+                <button class="tab-btn" onclick="switchAdherentTab('mesBesoins')" id="tabMesBesoins">
                     🛒 Mes besoins
                 </button>
                 <button class="tab-btn" onclick="switchAdherentTab('membres')" id="tabMembresAdherent">
@@ -1128,21 +1138,21 @@
 
             <!-- Contenu des onglets -->
             <div id="adherentTabContent">
-                <!-- Tab Demandes disponibles -->
-                <div id="tabContentDemandesAdherent" class="admin-tab-content active">
+                <!-- Tab Mes Demandes -->
+                <div id="tabContentMesDemandes" class="admin-tab-content active">
                     <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
-                        Demandes de devis en cours
+                        Mes demandes de devis
                     </h3>
-                    <p style="color: var(--text-medium); margin-bottom: 2rem;">
-                        Voici les demandes créées par votre coordonnateur. Vous pouvez exprimer vos besoins pour chaque demande.
+                    <p style="color: var(--text-medium); margin-bottom: 1rem;">
+                        Gérez vos demandes de devis et suivez les réponses des fournisseurs.
                     </p>
-                    <div id="demandesAdherentList"></div>
+                    <div id="mesDemandesAdherentList"></div>
                 </div>
 
                 <!-- Tab Mes besoins -->
                 <div id="tabContentMesBesoins" class="admin-tab-content">
                     <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
-                        Mes besoins exprimés
+                        Tous mes besoins exprimés
                     </h3>
                     <div id="mesBesoinsList"></div>
                 </div>
@@ -1160,7 +1170,88 @@
         <!-- Panel Fournisseur -->
         <div id="fournisseurPanel" class="panel">
             <h2>🚚 Tableau de bord Fournisseur</h2>
-            <p style="color: var(--text-medium);">Interface fournisseur à venir...</p>
+            
+            <!-- Informations du groupement -->
+            <div class="card" id="fournisseurGroupementInfo" style="margin-bottom: 2rem; background: linear-gradient(135deg, #8338ec 0%, #6a28d1 100%); color: white; border: none;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h3 id="fournisseurGroupementNom" style="margin: 0 0 1rem 0; font-size: 1.5rem;">Mon Groupement</h3>
+                        <div id="fournisseurGroupementDetails"></div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Coordonnateur</div>
+                        <div id="fournisseurCoordNom" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques fournisseur -->
+            <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+                <div class="card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsDemandesDisponibles">0</div>
+                    <div style="opacity: 0.9;">Demandes ouvertes</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsMesReponses">0</div>
+                    <div style="opacity: 0.9;">Mes réponses</div>
+                </div>
+                <div class="card" style="background: linear-gradient(135deg, var(--success) 0%, #40916c 100%); color: white; border: none;">
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;" id="statsAdherentsGroupement">0</div>
+                    <div style="opacity: 0.9;">Adhérents</div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button class="btn btn-small" onclick="loadFournisseurDashboard()">
+                    🔄 Actualiser
+                </button>
+            </div>
+
+            <div id="fournisseurAlerts"></div>
+
+            <!-- Onglets Fournisseur -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border);">
+                <button class="tab-btn active" onclick="switchFournisseurTab('demandes')" id="tabDemandesFournisseur">
+                    📋 Demandes disponibles
+                </button>
+                <button class="tab-btn" onclick="switchFournisseurTab('mesReponses')" id="tabMesReponses">
+                    💰 Mes réponses
+                </button>
+                <button class="tab-btn" onclick="switchFournisseurTab('membres')" id="tabMembresFournisseur">
+                    👥 Membres
+                </button>
+            </div>
+
+            <!-- Contenu des onglets -->
+            <div id="fournisseurTabContent">
+                <!-- Tab Demandes -->
+                <div id="tabContentDemandesFournisseur" class="admin-tab-content active">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Demandes de devis ouvertes
+                    </h3>
+                    <p style="color: var(--text-medium); margin-bottom: 1rem;">
+                        Consultez les demandes des adhérents et proposez vos prix.
+                    </p>
+                    <div id="demandesFournisseurList"></div>
+                </div>
+
+                <!-- Tab Mes Réponses -->
+                <div id="tabContentMesReponses" class="admin-tab-content">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Mes réponses aux demandes
+                    </h3>
+                    <div id="mesReponsesList"></div>
+                </div>
+
+                <!-- Tab Membres -->
+                <div id="tabContentMembresFournisseur" class="admin-tab-content">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--primary);">
+                        Membres du groupement
+                    </h3>
+                    <div id="membresFournisseurList"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1230,6 +1321,102 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-success">Créer l'invitation</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Créer Demande (Adhérent) -->
+    <div id="createDemandeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Créer une demande de devis</h3>
+                <button class="close-modal" onclick="closeCreateDemandeModal()">×</button>
+            </div>
+            <form onsubmit="createDemande(event)">
+                <div class="form-group">
+                    <label>Titre de la demande *</label>
+                    <input type="text" id="demandeTitre" required placeholder="Ex: Fruits et légumes bio - Janvier 2026">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="demandeDescription" placeholder="Décrivez vos besoins globaux..." style="min-height: 100px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Date limite de réponse *</label>
+                    <input type="date" id="demandeDateLimite" required>
+                </div>
+                <button type="submit" class="btn btn-success">Créer la demande</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter Besoin -->
+    <div id="addBesoinModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛒 Ajouter un besoin</h3>
+                <button class="close-modal" onclick="closeAddBesoinModal()">×</button>
+            </div>
+            <form onsubmit="addBesoin(event)">
+                <input type="hidden" id="besoinDemandeId">
+                <div class="form-group">
+                    <label>Produit *</label>
+                    <input type="text" id="besoinProduit" required placeholder="Ex: Pommes Golden bio">
+                </div>
+                <div class="form-group">
+                    <label>Quantité *</label>
+                    <input type="number" id="besoinQuantite" required step="0.01" placeholder="Ex: 50">
+                </div>
+                <div class="form-group">
+                    <label>Unité *</label>
+                    <select id="besoinUnite" required>
+                        <option value="kg">Kilogrammes (kg)</option>
+                        <option value="g">Grammes (g)</option>
+                        <option value="l">Litres (l)</option>
+                        <option value="unite">Unités</option>
+                        <option value="boite">Boîtes</option>
+                        <option value="carton">Cartons</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Spécifications (optionnel)</label>
+                    <textarea id="besoinSpecifications" placeholder="Ex: Bio, calibre 75-80mm, origine France..." style="min-height: 80px;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Ajouter le besoin</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Répondre Besoin (Fournisseur) -->
+    <div id="repondreBesoinModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Répondre au besoin</h3>
+                <button class="close-modal" onclick="closeRepondreBesoinModal()">×</button>
+            </div>
+            <div id="reponseBesoinInfo" style="background: var(--bg-light); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;"></div>
+            <form onsubmit="repondreBesoin(event)">
+                <input type="hidden" id="reponseDemandeId">
+                <input type="hidden" id="reponseBesoinId">
+                <div class="form-group">
+                    <label>Prix unitaire (€) *</label>
+                    <input type="number" id="reponsePrixUnitaire" required step="0.01" placeholder="Ex: 2.50">
+                </div>
+                <div class="form-group">
+                    <label>Disponibilité *</label>
+                    <select id="reponseDisponibilite" required>
+                        <option value="immediat">Immédiate</option>
+                        <option value="1-3jours">1-3 jours</option>
+                        <option value="1semaine">1 semaine</option>
+                        <option value="2semaines">2 semaines</option>
+                        <option value="sur-commande">Sur commande</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Commentaire (optionnel)</label>
+                    <textarea id="reponseCommentaire" placeholder="Informations complémentaires..." style="min-height: 80px;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Envoyer ma réponse</button>
             </form>
         </div>
     </div>
@@ -3058,6 +3245,545 @@
             // Le DOM est déjà chargé
             setTimeout(init, 100); // Petit délai pour laisser Supabase se charger
         }
+
+// ============================================
+// FONCTIONS ADHÉRENT - Créer demandes
+// ============================================
+
+// Charger le dashboard adhérent (mis à jour)
+async function loadAdherentDashboard() {
+    console.log('Chargement du dashboard adhérent...');
+    await loadGroupementInfoAdherent();
+    await loadAdherentStats();
+    await loadMesDemandesAdherent();
+}
+
+// Charger les stats adhérent (mis à jour)
+async function loadAdherentStats() {
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) return;
+
+        // Compter MES demandes
+        const { count: mesDemandes } = await supabaseClient
+            .from('demandes')
+            .select('*', { count: 'exact', head: true })
+            .eq('adherent_id', currentUser.id);
+
+        document.getElementById('statsDemandesAdherent').textContent = mesDemandes || 0;
+
+        // Compter MES besoins
+        const { count: mesBesoins } = await supabaseClient
+            .from('besoins_adherents')
+            .select('*', { count: 'exact', head: true })
+            .eq('adherent_id', currentUser.id);
+
+        document.getElementById('statsMesBesoins').textContent = mesBesoins || 0;
+
+        // Compter les réponses reçues sur mes demandes
+        const { data: demandes } = await supabaseClient
+            .from('demandes')
+            .select('id')
+            .eq('adherent_id', currentUser.id);
+
+        if (demandes && demandes.length > 0) {
+            const demandeIds = demandes.map(d => d.id);
+            const { count: reponses } = await supabaseClient
+                .from('reponses_fournisseurs')
+                .select('*', { count: 'exact', head: true })
+                .in('demande_id', demandeIds);
+
+            document.getElementById('statsReponsesRecues').textContent = reponses || 0;
+        }
+
+    } catch (error) {
+        console.error('Erreur chargement stats adhérent:', error);
+    }
+}
+
+// Charger MES demandes (nouveau)
+async function loadMesDemandesAdherent() {
+    try {
+        const { data: demandes, error } = await supabaseClient
+            .from('demandes')
+            .select('*')
+            .eq('adherent_id', currentUser.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('mesDemandesAdherentList');
+
+        if (!demandes || demandes.length === 0) {
+            container.innerHTML = `
+                <p style="text-align:center;color:var(--text-light);padding:2rem;">
+                    Aucune demande créée pour le moment.<br>
+                    <button class="btn btn-secondary btn-small" onclick="openCreateDemandeModal()" style="margin-top: 1rem;">
+                        ➕ Créer ma première demande
+                    </button>
+                </p>
+            `;
+            return;
+        }
+
+        let html = '<div style="display: flex; flex-direction: column; gap: 1.5rem;">';
+
+        for (const demande of demandes) {
+            // Charger les besoins de cette demande
+            const { count: nbBesoins } = await supabaseClient
+                .from('besoins_adherents')
+                .select('*', { count: 'exact', head: true })
+                .eq('demande_id', demande.id);
+
+            // Charger les réponses
+            const { count: nbReponses } = await supabaseClient
+                .from('reponses_fournisseurs')
+                .select('*', { count: 'exact', head: true })
+                .eq('demande_id', demande.id);
+
+            const dateLimite = new Date(demande.date_limite_reponse);
+            const isExpired = dateLimite < new Date();
+
+            html += `
+                <div class="card" style="border-left: 4px solid var(--${demande.statut === 'ouvert' ? 'success' : 'text-light'});">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="margin: 0 0 0.5rem 0; color: var(--primary);">${demande.titre}</h4>
+                            <p style="margin: 0; color: var(--text-medium);">${demande.description || 'Pas de description'}</p>
+                        </div>
+                        <span class="status-badge status-${demande.statut}">${demande.statut}</span>
+                    </div>
+                    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin: 1rem 0;">
+                        <div>
+                            <strong>📅 Date limite:</strong> ${formatDate(demande.date_limite_reponse)}
+                            ${isExpired ? '<span style="color: var(--danger);"> (Expiré)</span>' : ''}
+                        </div>
+                        <div><strong>🛒 Besoins:</strong> ${nbBesoins || 0}</div>
+                        <div><strong>💰 Réponses:</strong> ${nbReponses || 0}</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-small" onclick="viewDemandeDetails(${demande.id})">📋 Détails</button>
+                        <button class="btn btn-small btn-secondary" onclick="openAddBesoinModal(${demande.id})">➕ Ajouter un besoin</button>
+                        ${demande.statut === 'ouvert' ? `<button class="btn btn-small btn-danger" onclick="closeDemande(${demande.id})">🔒 Clore</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Erreur chargement mes demandes:', error);
+        showAlert('Erreur lors du chargement des demandes', 'error', 'adherentAlerts');
+    }
+}
+
+// Switch tabs adhérent (mis à jour)
+window.switchAdherentTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+
+    const tabButtons = {
+        'mesDemandes': 'tabMesDemandes',
+        'mesBesoins': 'tabMesBesoins',
+        'membres': 'tabMembresAdherent'
+    };
+
+    const tabContents = {
+        'mesDemandes': 'tabContentMesDemandes',
+        'mesBesoins': 'tabContentMesBesoins',
+        'membres': 'tabContentMembresAdherent'
+    };
+
+    document.getElementById(tabButtons[tab]).classList.add('active');
+    document.getElementById(tabContents[tab]).classList.add('active');
+
+    if (tab === 'mesDemandes') {
+        loadMesDemandesAdherent();
+    } else if (tab === 'mesBesoins') {
+        loadTousLesBesoins();
+    } else if (tab === 'membres') {
+        loadMembresAdherent();
+    }
+};
+
+// Modal créer demande
+window.openCreateDemandeModal = function() {
+    // Définir la date minimale à aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('demandeDateLimite').min = today;
+    document.getElementById('createDemandeModal').classList.add('active');
+};
+
+window.closeCreateDemandeModal = function() {
+    document.getElementById('createDemandeModal').classList.remove('active');
+};
+
+window.createDemande = async function(e) {
+    e.preventDefault();
+
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) {
+            throw new Error('Aucun groupement associé');
+        }
+
+        const titre = document.getElementById('demandeTitre').value;
+        const description = document.getElementById('demandeDescription').value;
+        const dateLimite = document.getElementById('demandeDateLimite').value;
+
+        const { data, error } = await supabaseClient
+            .from('demandes')
+            .insert([{
+                titre: titre,
+                description: description,
+                adherent_id: currentUser.id,
+                groupement_id: profile.groupement_id,
+                date_limite_reponse: dateLimite,
+                statut: 'ouvert'
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        showAlert('Demande créée avec succès !', 'success', 'adherentAlerts');
+        closeCreateDemandeModal();
+        e.target.reset();
+        loadAdherentStats();
+        switchAdherentTab('mesDemandes');
+
+    } catch (error) {
+        console.error('Erreur création demande:', error);
+        showAlert('Erreur: ' + error.message, 'error', 'adherentAlerts');
+    }
+};
+
+// Modal ajouter besoin
+window.openAddBesoinModal = function(demandeId) {
+    document.getElementById('besoinDemandeId').value = demandeId;
+    document.getElementById('addBesoinModal').classList.add('active');
+};
+
+window.closeAddBesoinModal = function() {
+    document.getElementById('addBesoinModal').classList.remove('active');
+};
+
+window.addBesoin = async function(e) {
+    e.preventDefault();
+
+    try {
+        const demandeId = document.getElementById('besoinDemandeId').value;
+        const produit = document.getElementById('besoinProduit').value;
+        const quantite = document.getElementById('besoinQuantite').value;
+        const unite = document.getElementById('besoinUnite').value;
+        const specifications = document.getElementById('besoinSpecifications').value;
+
+        const { error } = await supabaseClient
+            .from('besoins_adherents')
+            .insert([{
+                demande_id: demandeId,
+                adherent_id: currentUser.id,
+                produit: produit,
+                quantite: quantite,
+                unite: unite,
+                specifications: specifications
+            }]);
+
+        if (error) throw error;
+
+        showAlert('Besoin ajouté avec succès !', 'success', 'adherentAlerts');
+        closeAddBesoinModal();
+        e.target.reset();
+        loadAdherentStats();
+        loadMesDemandesAdherent();
+
+    } catch (error) {
+        console.error('Erreur ajout besoin:', error);
+        showAlert('Erreur: ' + error.message, 'error', 'adherentAlerts');
+    }
+};
+
+// ============================================
+// FONCTIONS FOURNISSEUR
+// ============================================
+
+async function loadFournisseurDashboard() {
+    console.log('Chargement du dashboard fournisseur...');
+    await loadGroupementInfoFournisseur();
+    await loadFournisseurStats();
+    await loadDemandesDisponibles();
+}
+
+async function loadGroupementInfoFournisseur() {
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) {
+            showAlert('Aucun groupement associé', 'warning', 'fournisseurAlerts');
+            return;
+        }
+
+        const { data: groupement, error } = await supabaseClient
+            .from('groupements')
+            .select('*')
+            .eq('id', profile.groupement_id)
+            .single();
+
+        if (error) throw error;
+
+        if (groupement) {
+            document.getElementById('fournisseurGroupementNom').textContent = groupement.nom;
+            document.getElementById('fournisseurGroupementDetails').innerHTML = `
+                <p style="margin: 0.5rem 0; opacity: 0.9;">
+                    <strong>Description:</strong> ${groupement.description || '-'}
+                </p>
+            `;
+
+            // Charger le nom du coordonnateur
+            const { data: coord } = await supabaseClient
+                .from('profiles')
+                .select('nom')
+                .eq('id', groupement.coordonnateur_id)
+                .single();
+
+            if (coord) {
+                document.getElementById('fournisseurCoordNom').textContent = coord.nom;
+            }
+        }
+
+    } catch (error) {
+        console.error('Erreur chargement groupement fournisseur:', error);
+    }
+}
+
+async function loadFournisseurStats() {
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) return;
+
+        // Compter les demandes ouvertes du groupement
+        const { count: demandesOuvertes } = await supabaseClient
+            .from('demandes')
+            .select('*', { count: 'exact', head: true })
+            .eq('groupement_id', profile.groupement_id)
+            .eq('statut', 'ouvert');
+
+        document.getElementById('statsDemandesDisponibles').textContent = demandesOuvertes || 0;
+
+        // Compter mes réponses
+        const { count: mesReponses } = await supabaseClient
+            .from('reponses_fournisseurs')
+            .select('*', { count: 'exact', head: true })
+            .eq('fournisseur_id', currentUser.id);
+
+        document.getElementById('statsMesReponses').textContent = mesReponses || 0;
+
+        // Compter les adhérents
+        const { count: adherents } = await supabaseClient
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('groupement_id', profile.groupement_id)
+            .eq('role', 'adherent');
+
+        document.getElementById('statsAdherentsGroupement').textContent = adherents || 0;
+
+    } catch (error) {
+        console.error('Erreur chargement stats fournisseur:', error);
+    }
+}
+
+async function loadDemandesDisponibles() {
+    try {
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('groupement_id')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (!profile || !profile.groupement_id) return;
+
+        const { data: demandes, error } = await supabaseClient
+            .from('demandes')
+            .select('*')
+            .eq('groupement_id', profile.groupement_id)
+            .eq('statut', 'ouvert')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('demandesFournisseurList');
+
+        if (!demandes || demandes.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:2rem;">Aucune demande ouverte pour le moment</p>';
+            return;
+        }
+
+        let html = '<div style="display: flex; flex-direction: column; gap: 1.5rem;">';
+
+        for (const demande of demandes) {
+            // Charger l'adhérent
+            const { data: adherent } = await supabaseClient
+                .from('profiles')
+                .select('nom')
+                .eq('id', demande.adherent_id)
+                .single();
+
+            // Charger les besoins
+            const { data: besoins } = await supabaseClient
+                .from('besoins_adherents')
+                .select('*')
+                .eq('demande_id', demande.id);
+
+            const dateLimite = new Date(demande.date_limite_reponse);
+            const joursRestants = Math.ceil((dateLimite - new Date()) / (1000 * 60 * 60 * 24));
+
+            html += `
+                <div class="card" style="border-left: 4px solid var(--primary);">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="margin: 0 0 0.5rem 0; color: var(--primary);">${demande.titre}</h4>
+                            <p style="margin: 0; color: var(--text-medium);">Par ${adherent?.nom || 'N/A'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--text-light);">${demande.description || 'Pas de description'}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin: 1rem 0;">
+                        <div>
+                            <strong>📅 Date limite:</strong> ${formatDate(demande.date_limite_reponse)}
+                            <span style="color: ${joursRestants < 3 ? 'var(--danger)' : 'var(--success)'};">
+                                (${joursRestants} jour${joursRestants > 1 ? 's' : ''} restant${joursRestants > 1 ? 's' : ''})
+                            </span>
+                        </div>
+                        <div><strong>🛒 Besoins:</strong> ${besoins?.length || 0}</div>
+                    </div>
+                    ${besoins && besoins.length > 0 ? `
+                        <div style="margin-top: 1rem;">
+                            <strong>Besoins:</strong>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                ${besoins.map(b => `
+                                    <li style="margin: 0.5rem 0;">
+                                        ${b.produit} - ${b.quantite} ${b.unite}
+                                        ${b.specifications ? `<span style="color: var(--text-medium);"> (${b.specifications})</span>` : ''}
+                                        <button class="btn btn-small btn-secondary" onclick="openRepondreBesoinModal(${demande.id}, ${b.id}, '${b.produit}', ${b.quantite}, '${b.unite}')" style="margin-left: 1rem;">
+                                            💰 Répondre
+                                        </button>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Erreur chargement demandes fournisseur:', error);
+        showAlert('Erreur lors du chargement des demandes', 'error', 'fournisseurAlerts');
+    }
+}
+
+// Gérer les onglets fournisseur
+window.switchFournisseurTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+
+    const tabButtons = {
+        'demandes': 'tabDemandesFournisseur',
+        'mesReponses': 'tabMesReponses',
+        'membres': 'tabMembresFournisseur'
+    };
+
+    const tabContents = {
+        'demandes': 'tabContentDemandesFournisseur',
+        'mesReponses': 'tabContentMesReponses',
+        'membres': 'tabContentMembresFournisseur'
+    };
+
+    document.getElementById(tabButtons[tab]).classList.add('active');
+    document.getElementById(tabContents[tab]).classList.add('active');
+
+    if (tab === 'demandes') {
+        loadDemandesDisponibles();
+    } else if (tab === 'mesReponses') {
+        loadMesReponsesFournisseur();
+    } else if (tab === 'membres') {
+        loadMembresFournisseur();
+    }
+};
+
+// Modal répondre besoin
+window.openRepondreBesoinModal = function(demandeId, besoinId, produit, quantite, unite) {
+    document.getElementById('reponseDemandeId').value = demandeId;
+    document.getElementById('reponseBesoinId').value = besoinId;
+    document.getElementById('reponseBesoinInfo').innerHTML = `
+        <strong>Produit:</strong> ${produit}<br>
+        <strong>Quantité demandée:</strong> ${quantite} ${unite}
+    `;
+    document.getElementById('repondreBesoinModal').classList.add('active');
+};
+
+window.closeRepondreBesoinModal = function() {
+    document.getElementById('repondreBesoinModal').classList.remove('active');
+};
+
+window.repondreBesoin = async function(e) {
+    e.preventDefault();
+
+    try {
+        const demandeId = document.getElementById('reponseDemandeId').value;
+        const besoinId = document.getElementById('reponseBesoinId').value;
+        const prixUnitaire = document.getElementById('reponsePrixUnitaire').value;
+        const disponibilite = document.getElementById('reponseDisponibilite').value;
+        const commentaire = document.getElementById('reponseCommentaire').value;
+
+        const { error } = await supabaseClient
+            .from('reponses_fournisseurs')
+            .insert([{
+                demande_id: demandeId,
+                besoin_id: besoinId,
+                fournisseur_id: currentUser.id,
+                prix_unitaire: prixUnitaire,
+                disponibilite: disponibilite,
+                commentaire: commentaire
+            }]);
+
+        if (error) throw error;
+
+        showAlert('Réponse envoyée avec succès !', 'success', 'fournisseurAlerts');
+        closeRepondreBesoinModal();
+        e.target.reset();
+        loadFournisseurStats();
+        loadDemandesDisponibles();
+
+    } catch (error) {
+        console.error('Erreur envoi réponse:', error);
+        showAlert('Erreur: ' + error.message, 'error', 'fournisseurAlerts');
+    }
+};
+
     </script>
 </body>
 </html>
