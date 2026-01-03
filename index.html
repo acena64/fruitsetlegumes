@@ -1684,7 +1684,7 @@
                     .single();
 
                 if (error || !data) {
-                    throw new Error('Token d'invitation invalide ou expiré');
+                    throw new Error('Token d\'invitation invalide ou expiré');
                 }
 
                 // Vérifier l'expiration
@@ -1730,12 +1730,12 @@
 
         // Initialisation
         async function init() {
-            console.log('Démarrage de l'application...');
+            console.log('Démarrage de l\'application...');
             
             if (!supabaseClient) {
                 const success = initSupabase();
                 if (!success) {
-                    console.error('Impossible d'initialiser Supabase');
+                    console.error('Impossible d\'initialiser Supabase');
                     showAlert('Erreur de chargement. Veuillez recharger la page.', 'error');
                     return;
                 }
@@ -1746,7 +1746,7 @@
             const token = urlParams.get('token');
             
             if (token) {
-                console.log('Token trouve dans l'URL');
+                console.log('Token trouve dans l\'URL');
                 // Pré-remplir le formulaire d'inscription
                 document.getElementById('signupToken').value = token;
                 // Afficher le formulaire d'inscription
@@ -1766,7 +1766,7 @@
                     console.log('Aucune session active');
                 }
             } catch (error) {
-                console.error('Erreur lors de l'initialisation:', error);
+                console.error('Erreur lors de l\'initialisation:', error);
             }
         }
 
@@ -1831,7 +1831,7 @@
             e.preventDefault();
 
             if (!currentInvitation) {
-                showAlert('Veuillez d'abord vérifier votre invitation', 'error');
+                showAlert('Veuillez d\'abord vérifier votre invitation', 'error');
                 return;
             }
 
