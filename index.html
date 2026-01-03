@@ -851,8 +851,8 @@
             </p>
             <form onsubmit="return handleSignup(event)">
                 <div class="form-group">
-                    <label>Token d&apos;invitation</label>
-                    <input type="text" id="signupToken" required placeholder="Collez votre token d&apos;invitation ici">
+                    <label>Token d'invitation</label>
+                    <input type="text" id="signupToken" required placeholder="Collez votre token d'invitation ici">
                     <small style="color: var(--text-light); font-size: 0.85rem; display: block; margin-top: 0.5rem;">
                         Le token vous a été envoyé par email
                     </small>
@@ -1612,7 +1612,7 @@
 
     <script>
         // Fonction toggleAuth - définie globalement
-        window.toggleAuth = function() {
+        toggleAuth = function() {
             console.log('toggleAuth appelée');
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
@@ -1655,7 +1655,7 @@
         let currentInvitation = null; // Stocker l'invitation vérifiée
 
         // Vérifier le token d'invitation
-        window.verifyInvitation = async function() {
+        verifyInvitation = async function() {
             const token = document.getElementById('signupToken').value.trim();
             
             if (!token) {
@@ -1771,9 +1771,7 @@
         }
 
         // Auth Functions
-        console.log("🔵 Début des déclarations de fonctions auth");
-        window.handleLogin = async function(e) {
-            console.log("✅ handleLogin appelé");
+        handleLogin = async function(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -1829,7 +1827,7 @@
             }
         };
 
-        window.handleSignup = async function(e) {
+        handleSignup = async function(e) {
             e.preventDefault();
 
             if (!currentInvitation) {
@@ -2001,7 +1999,7 @@
             }
         };
 
-        window.logout = async function() {
+        logout = async function() {
             await supabaseClient.auth.signOut();
             currentUser = null;
             document.getElementById('authSection').classList.remove('hidden');
@@ -2313,7 +2311,7 @@
         }
 
         // Gestion des onglets coordonnateur
-        window.switchCoordTab = function(tab) {
+        switchCoordTab = function(tab) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
 
@@ -2343,17 +2341,17 @@
         };
 
         // Modal invitation coordonnateur
-        window.openInvitationCoordModal = function(role) {
+        openInvitationCoordModal = function(role) {
             document.getElementById('invitationCoordRole').value = role;
             document.getElementById('invitationCoordTitle').textContent = role === 'adherent' ? '📧 Inviter un adhérent' : '📧 Inviter un fournisseur';
             document.getElementById('invitationCoordModal').classList.add('active');
         };
 
-        window.closeInvitationCoordModal = function() {
+        closeInvitationCoordModal = function() {
             document.getElementById('invitationCoordModal').classList.remove('active');
         };
 
-        window.createInvitationCoord = async function(e) {
+        createInvitationCoord = async function(e) {
             e.preventDefault();
 
             const email = document.getElementById('invitationCoordEmail').value;
@@ -2395,7 +2393,7 @@
                             ${data.token}
                             <button class="copy-btn" onclick="copyToken('${data.token}')">📋 Copier</button>
                         </div>
-                        <p><strong>Lien d&apos;inscription:</strong></p>
+                        <p><strong>Lien d'inscription:</strong></p>
                         <input type="text" readonly value="${window.location.origin}${window.location.pathname}?token=${data.token}"
                                style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid var(--border); border-radius: 6px;"
                                onclick="this.select()">
@@ -2660,7 +2658,7 @@
         }
 
         // Gestion des onglets adhérent
-        window.switchAdherentTab = function(tab) {
+        switchAdherentTab = function(tab) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
 
@@ -2970,7 +2968,7 @@
         }
 
         // Gestion des onglets admin
-        window.switchAdminTab = function(tab) {
+        switchAdminTab = function(tab) {
             // Désactiver tous les onglets
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
@@ -3093,11 +3091,11 @@
         }
 
         // Modals
-        window.openInvitationModal = function() {
+        openInvitationModal = function() {
             document.getElementById('invitationModal').classList.add('active');
         };
 
-        window.closeInvitationModal = function() {
+        closeInvitationModal = function() {
             document.getElementById('invitationModal').classList.remove('active');
         };
 
@@ -3106,7 +3104,7 @@
         };
 
         // Créer une invitation
-        window.createInvitation = async function(e) {
+        createInvitation = async function(e) {
             e.preventDefault();
 
             const email = document.getElementById('invitationEmail').value;
@@ -3147,7 +3145,7 @@
                             ${data.token}
                             <button class="copy-btn" onclick="copyToken('${data.token}')">📋 Copier</button>
                         </div>
-                        <p><strong>Lien d&apos;inscription:</strong></p>
+                        <p><strong>Lien d'inscription:</strong></p>
                         <input type="text" readonly value="${window.location.origin}${window.location.pathname}?token=${data.token}" 
                                style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid var(--border); border-radius: 6px;"
                                onclick="this.select()">
@@ -3168,7 +3166,7 @@
         };
 
         // Copier le token
-        window.copyToken = function(token) {
+        copyToken = function(token) {
             navigator.clipboard.writeText(token).then(() => {
                 showAlert('Token copié dans le presse-papier !', 'success', 'adminAlerts');
             }).catch(err => {
@@ -3268,7 +3266,7 @@
                     <div class="info-box">
                         <h3 style="margin-bottom: 1rem;">${groupement.nom}</h3>
                         <p><strong>Description:</strong> ${groupement.description || '-'}</p>
-                        <p><strong>Code d&apos;invitation:</strong> <span class="token-badge">${groupement.code_invite}</span></p>
+                        <p><strong>Code d'invitation:</strong> <span class="token-badge">${groupement.code_invite}</span></p>
                         <p><strong>Créé le:</strong> ${formatDate(groupement.created_at)}</p>
                     </div>
 
@@ -3334,7 +3332,7 @@
             document.getElementById('reponseModal').classList.remove('active');
         };
 
-        window.createDemande = async function(e) {
+        createDemande = async function(e) {
             e.preventDefault();
 
             const demande = {
@@ -3587,7 +3585,7 @@ async function loadMesDemandesAdherent() {
 }
 
 // Switch tabs adhérent (mis à jour)
-window.switchAdherentTab = function(tab) {
+switchAdherentTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
 
@@ -3616,18 +3614,18 @@ window.switchAdherentTab = function(tab) {
 };
 
 // Modal créer demande
-window.openCreateDemandeModal = function() {
+openCreateDemandeModal = function() {
     // Définir la date minimale à aujourd'hui
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('demandeDateLimite').min = today;
     document.getElementById('createDemandeModal').classList.add('active');
 };
 
-window.closeCreateDemandeModal = function() {
+closeCreateDemandeModal = function() {
     document.getElementById('createDemandeModal').classList.remove('active');
 };
 
-window.createDemande = async function(e) {
+createDemande = async function(e) {
     e.preventDefault();
 
     try {
@@ -3673,16 +3671,16 @@ window.createDemande = async function(e) {
 };
 
 // Modal ajouter besoin
-window.openAddBesoinModal = function(demandeId) {
+openAddBesoinModal = function(demandeId) {
     document.getElementById('besoinDemandeId').value = demandeId;
     document.getElementById('addBesoinModal').classList.add('active');
 };
 
-window.closeAddBesoinModal = function() {
+closeAddBesoinModal = function() {
     document.getElementById('addBesoinModal').classList.remove('active');
 };
 
-window.addBesoin = async function(e) {
+addBesoin = async function(e) {
     e.preventDefault();
 
     try {
@@ -3908,7 +3906,7 @@ async function loadDemandesDisponibles() {
 }
 
 // Gérer les onglets fournisseur
-window.switchFournisseurTab = function(tab) {
+switchFournisseurTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
 
@@ -3937,7 +3935,7 @@ window.switchFournisseurTab = function(tab) {
 };
 
 // Modal répondre besoin
-window.openRepondreBesoinModal = function(demandeId, besoinId, produit, quantite, unite) {
+openRepondreBesoinModal = function(demandeId, besoinId, produit, quantite, unite) {
     document.getElementById('reponseDemandeId').value = demandeId;
     document.getElementById('reponseBesoinId').value = besoinId;
     document.getElementById('reponseBesoinInfo').innerHTML = `
@@ -3947,11 +3945,11 @@ window.openRepondreBesoinModal = function(demandeId, besoinId, produit, quantite
     document.getElementById('repondreBesoinModal').classList.add('active');
 };
 
-window.closeRepondreBesoinModal = function() {
+closeRepondreBesoinModal = function() {
     document.getElementById('repondreBesoinModal').classList.remove('active');
 };
 
-window.repondreBesoin = async function(e) {
+repondreBesoin = async function(e) {
     e.preventDefault();
 
     try {
@@ -4211,7 +4209,7 @@ async function loadFournisseursStats() {
 }
 
 // Filtrer les fournisseurs
-window.filterFournisseurs = function() {
+filterFournisseurs = function() {
     const searchTerm = document.getElementById('searchFournisseur').value.toLowerCase();
     const statutFilter = document.getElementById('filterStatut').value;
 
@@ -4238,17 +4236,17 @@ window.filterFournisseurs = function() {
 };
 
 // Modal ajouter fournisseur
-window.openAddFournisseurModal = function() {
+openAddFournisseurModal = function() {
     document.getElementById('addFournisseurModal').classList.add('active');
 };
 
-window.closeAddFournisseurModal = function() {
+closeAddFournisseurModal = function() {
     document.getElementById('addFournisseurModal').classList.remove('active');
     document.querySelector('#addFournisseurModal form').reset();
 };
 
 // Ajouter un fournisseur
-window.addFournisseur = async function(e) {
+addFournisseur = async function(e) {
     e.preventDefault();
 
     try {
@@ -4356,7 +4354,7 @@ window.addFournisseur = async function(e) {
 };
 
 // Modal modifier fournisseur
-window.openEditFournisseurModal = async function(fournisseurId) {
+openEditFournisseurModal = async function(fournisseurId) {
     try {
         const { data: fournisseur, error } = await supabaseClient
             .from('fournisseurs_groupement')
@@ -4384,12 +4382,12 @@ window.openEditFournisseurModal = async function(fournisseurId) {
     }
 };
 
-window.closeEditFournisseurModal = function() {
+closeEditFournisseurModal = function() {
     document.getElementById('editFournisseurModal').classList.remove('active');
 };
 
 // Mettre à jour un fournisseur
-window.updateFournisseur = async function(e) {
+updateFournisseur = async function(e) {
     e.preventDefault();
 
     try {
@@ -4431,7 +4429,7 @@ window.updateFournisseur = async function(e) {
 };
 
 // Activer/Désactiver un fournisseur
-window.toggleFournisseurActif = async function(fournisseurId, actif) {
+toggleFournisseurActif = async function(fournisseurId, actif) {
     try {
         const action = actif ? 'activer' : 'désactiver';
         if (!confirm(`Voulez-vous vraiment ${action} ce fournisseur ?`)) {
@@ -4455,7 +4453,7 @@ window.toggleFournisseurActif = async function(fournisseurId, actif) {
 };
 
 // Voir les réponses d'un fournisseur
-window.viewFournisseurReponses = async function(fournisseurUserId, nomEntreprise) {
+viewFournisseurReponses = async function(fournisseurUserId, nomEntreprise) {
     try {
         const { data: reponses, error } = await supabaseClient
             .from('reponses_fournisseurs')
@@ -4518,12 +4516,12 @@ window.viewFournisseurReponses = async function(fournisseurUserId, nomEntreprise
     }
 };
 
-window.closeViewReponsesFournisseurModal = function() {
+closeViewReponsesFournisseurModal = function() {
     document.getElementById('viewReponsesFournisseurModal').classList.remove('active');
 };
 
 // Mettre à jour la fonction switchCoordTab
-window.switchCoordTab = function(tab) {
+switchCoordTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
 
@@ -4555,7 +4553,53 @@ window.switchCoordTab = function(tab) {
     }
 };
 
-        console.log("🔵 Fin du chargement du script. handleLogin défini?", typeof window.handleLogin);
+
+        // ============================================
+        // EXPOSER TOUTES LES FONCTIONS SUR WINDOW
+        // ============================================
+        window.handleLogin = handleLogin;
+        window.handleSignup = handleSignup;
+        window.toggleAuth = toggleAuth;
+        window.logout = logout;
+        window.verifyInvitation = verifyInvitation;
+        window.createInvitation = createInvitation;
+        window.createInvitationCoord = createInvitationCoord;
+        window.switchAdminTab = switchAdminTab;
+        window.switchCoordTab = switchCoordTab;
+        window.switchAdherentTab = switchAdherentTab;
+        window.switchFournisseurTab = switchFournisseurTab;
+        window.openInvitationModal = openInvitationModal;
+        window.closeInvitationModal = closeInvitationModal;
+        window.openInvitationCoordModal = openInvitationCoordModal;
+        window.closeInvitationCoordModal = closeInvitationCoordModal;
+        window.openAddFournisseurModal = openAddFournisseurModal;
+        window.closeAddFournisseurModal = closeAddFournisseurModal;
+        window.addFournisseur = addFournisseur;
+        window.openEditFournisseurModal = openEditFournisseurModal;
+        window.closeEditFournisseurModal = closeEditFournisseurModal;
+        window.updateFournisseur = updateFournisseur;
+        window.toggleFournisseurActif = toggleFournisseurActif;
+        window.viewFournisseurReponses = viewFournisseurReponses;
+        window.closeViewReponsesFournisseurModal = closeViewReponsesFournisseurModal;
+        window.filterFournisseurs = filterFournisseurs;
+        window.openCreateDemandeModal = openCreateDemandeModal;
+        window.closeCreateDemandeModal = closeCreateDemandeModal;
+        window.createDemande = createDemande;
+        window.openAddBesoinModal = openAddBesoinModal;
+        window.closeAddBesoinModal = closeAddBesoinModal;
+        window.addBesoin = addBesoin;
+        window.openRepondreBesoinModal = openRepondreBesoinModal;
+        window.closeRepondreBesoinModal = closeRepondreBesoinModal;
+        window.repondreBesoin = repondreBesoin;
+        window.copyToken = copyToken;
+        window.formatDate = formatDate;
+        window.showAlert = showAlert;
+        window.getRoleText = getRoleText;
+        
+        console.log("🎉 TOUTES les fonctions sont maintenant disponibles sur window");
+        console.log("handleLogin:", typeof handleLogin);
+        console.log("window.handleLogin:", typeof window.handleLogin);
+
     </script>
 </body>
 </html>
