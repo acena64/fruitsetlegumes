@@ -1771,7 +1771,9 @@
         }
 
         // Auth Functions
+        console.log("🔵 Début des déclarations de fonctions auth");
         window.handleLogin = async function(e) {
+            console.log("✅ handleLogin appelé");
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -4553,6 +4555,7 @@ window.switchCoordTab = function(tab) {
     }
 };
 
+        console.log("🔵 Fin du chargement du script. handleLogin défini?", typeof window.handleLogin);
     </script>
 </body>
 </html>
