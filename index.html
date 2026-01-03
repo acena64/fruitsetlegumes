@@ -1613,12 +1613,12 @@
     <script>
         // Fonction toggleAuth - définie globalement
         toggleAuth = function() {
-            console.log('toggleAuth appelée');
+            console.log('toggleAuth appelee');
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
             
             if (!loginForm || !signupForm) {
-                console.error('Éléments introuvables');
+                console.error('Elements introuvables');
                 return;
             }
             
@@ -1645,7 +1645,7 @@
                 console.log('Supabase initialisé:', !!supabaseClient);
                 return true;
             } else {
-                console.error('window.supabase n'est pas disponible !');
+                console.error('window.supabase n\'est pas disponible !');
                 return false;
             }
         }
@@ -1746,7 +1746,7 @@
             const token = urlParams.get('token');
             
             if (token) {
-                console.log('Token trouvé dans l'URL');
+                console.log('Token trouve dans l'URL');
                 // Pré-remplir le formulaire d'inscription
                 document.getElementById('signupToken').value = token;
                 // Afficher le formulaire d'inscription
@@ -4309,7 +4309,7 @@ addFournisseur = async function(e) {
         }
 
         if (!fournisseurUserId) {
-            throw new Error('Le fournisseur doit d'abord s'inscrire avec une invitation');
+            throw new Error('Le fournisseur doit d\'abord s\'inscrire avec une invitation');
         }
 
         // Vérifier si le fournisseur n'est pas déjà dans le groupement
